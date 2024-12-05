@@ -23,4 +23,4 @@ Application/*.iml
 Application/.DS_Store
 
 # Api key
-Application/app/src/main/res/values/api_key.xml
+Application/app/google-services.json
