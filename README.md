@@ -28,7 +28,7 @@ The **Gyanchakkhu Mobile App** revolutionizes the library experience by eliminat
 
 ## 🛠 Tech Stack
 
-- **Frontend**: Kotlin (Android)
+- **Frontend**: Kotlin (Android), Jetpack Compose
 - **Backend**: Firebase
 - **AI Integration**: Not disclosed
 - **Security**: Not disclosed
@@ -46,6 +46,7 @@ The **Gyanchakkhu Mobile App** revolutionizes the library experience by eliminat
    ```bash
    git clone https://github.com/<your-username>/gyanchakkhu-mobile-app.git
    cd gyanchakkhu-mobile-app
+   cd Application
    ```
 2. Open the project in **Android Studio**.
 3. Sync Gradle files and resolve dependencies.
