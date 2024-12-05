@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -19,6 +21,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
     }
 
     buildTypes {
@@ -72,6 +75,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("com.canopas.compose-animated-navigationbar:bottombar:1.0.1")
     implementation(kotlin("reflect"))
 }
