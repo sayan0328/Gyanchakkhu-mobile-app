@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "928051191328",
+    "project_id": "gyanchakkhu-b9b48",
+    "storage_bucket": "gyanchakkhu-b9b48.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928051191328:android:311b47509157b2c5e72645",
+        "android_client_info": {
+          "package_name": "com.example.gyanchakkhu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvcxOe76kFoPA00JaQ0O9RL1WU13Abymc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
