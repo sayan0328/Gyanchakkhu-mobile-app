@@ -34,10 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
+import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Gray
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.MyPurple80
@@ -115,30 +117,65 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(16.dp)
                             )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Name",
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "Sayan Basak",
+                                    modifier = Modifier
+                                        .padding(horizontal = 12.dp)
+                                        .weight(3f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                             Row {
-                                Column {
-                                    Text(text = "Name", fontWeight = FontWeight.Bold)
-                                    Text(text = "Email", fontWeight = FontWeight.Bold)
-                                    Text(text = "Password", fontWeight = FontWeight.Bold)
-                                }
-                                Spacer(modifier = Modifier.width(20.dp))
-                                Column {
-                                    Text(text = "Sayan Basak") //Name value
-                                    Text(text = "sayanbasak42@gmail.com") // Email value
-                                    Text(text = "******") // Password value
-                                }
+                                Text(
+                                    text = "Email",
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "sayan@gmail.com",
+                                    modifier = Modifier
+                                        .padding(horizontal = 12.dp)
+                                        .weight(3f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Row {
+                                Text(
+                                    text = "Password",
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "******",
+                                    modifier = Modifier
+                                        .padding(horizontal = 12.dp)
+                                        .weight(3f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
                             Button(
                                 modifier = Modifier
-                                    .padding(20.dp)
+                                    .padding(top = 12.dp, bottom = 20.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .height(36.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = MyPurple120),
+                                colors = ButtonDefaults.buttonColors(containerColor = Blue40),
                                 onClick = {/*TODO*/ }
                             ) {
                                 Text(
                                     text = "Change Password",
-                                    color = Gray,
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                 )
                             }
@@ -187,12 +224,12 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     .padding(20.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .height(36.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = MyPurple120),
+                                colors = ButtonDefaults.buttonColors(containerColor = Blue40),
                                 onClick = {/*TODO*/ }
                             ) {
                                 Text(
                                     text = "Submit",
-                                    color = Gray,
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                 )
                             }

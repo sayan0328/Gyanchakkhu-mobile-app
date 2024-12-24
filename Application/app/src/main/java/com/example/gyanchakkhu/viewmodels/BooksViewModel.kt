@@ -3,12 +3,18 @@ package com.example.gyanchakkhu.viewmodels
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
+@OptIn(FlowPreview::class)
 class BooksViewModel: ViewModel(){
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
@@ -18,15 +24,19 @@ class BooksViewModel: ViewModel(){
 
     private val _books = MutableStateFlow(booksList) //listOf<Book>()
     val books = searchText
+        .debounce(500L)
+        .onEach { _isSearching.update { true } }
         .combine(_books) { text, books ->
             if(text.isBlank()){
                 books
             } else {
+                delay(2000L)
                 books.filter {
                     it.doesMatchSearchQuery(text)
                 }
             }
         }
+        .onEach { _isSearching.update { false } }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
@@ -39,54 +49,53 @@ class BooksViewModel: ViewModel(){
 }
 
 data class Book(
-    val name: String,
-    val id: String,
+    val bookName: String,
+    val bookId: String,
     val libSection: String,
-    val rackNo: Int
+    val rackNo: String
 ) {
     fun doesMatchSearchQuery(query: String): Boolean {
         val matchingCombination = listOf(
-            "$name$id",
-            "$name $id",
+            "$bookName$bookId",
+            "$bookName $bookId",
             "$libSection$rackNo",
             "$libSection $rackNo"
         )
         return matchingCombination.any{
             it.contains(query, ignoreCase = true)
-            return true
         }
     }
 }
 
 private val booksList = listOf( //Predefined list of books for testing purposes
     Book(
-        name = "ABC",
-        id = "123",
+        bookName = "ABC Book",
+        bookId = "123",
         libSection = "A",
-        rackNo = 1
+        rackNo = "R1"
     ),
     Book(
-        name = "XYZ",
-        id = "456",
+        bookName = "XYZ Book",
+        bookId = "456",
         libSection = "B",
-        rackNo = 2
+        rackNo = "R2"
     ),
     Book(
-        name = "PQR",
-        id = "789",
+        bookName = "PQR Book",
+        bookId = "789",
         libSection = "C",
-        rackNo = 3
+        rackNo = "R3"
     ),
     Book(
-        name = "MNO",
-        id = "678",
+        bookName = "MNO Book",
+        bookId = "678",
         libSection = "D",
-        rackNo = 4
+        rackNo = "R4"
     ),
     Book(
-        name = "GHI",
-        id = "345",
+        bookName = "GHI Book",
+        bookId = "345",
         libSection = "E",
-        rackNo = 5
+        rackNo = "R5"
     ),
 )

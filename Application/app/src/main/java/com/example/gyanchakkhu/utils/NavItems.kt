@@ -25,9 +25,9 @@ val listOfNavItems: List<NavItems> = listOf(
         route = Routes.home_page
     ),
     NavItems(
-        label = "Records",
+        label = "History",
         icon = R.drawable.records,
-        route = Routes.records_page
+        route = Routes.history_page
     ),
     NavItems(
         label = "Profile",
