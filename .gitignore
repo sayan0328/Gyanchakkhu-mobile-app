@@ -1,26 +1,49 @@
-# Generated files
-Application/bin/
-Application/gen/
-
 # Gradle files
 Application/.gradle/
-Application/gradlew.bat
-Application/gradlew
 Application/build/
-Application/gradle.properties
 
-# Local configuration file (sdk path, etc)
+# Local configuration files
 Application/local.properties
 
-# Intellij project files
-Application/*.iws
-Application/.idea/tasks.xml
-Application/.idea
+# Android Studio and IntelliJ IDEA files
+Application/.idea/
+*.iml
+*.iws
+*.ipr
 
-Application/*.iml
- 
-# OS
+# Android Studio cache
+Application/.idea/caches/
+Application/.idea/libraries/
+Application/.idea/modules.xml
+Application/.idea/workspace.xml
+Application/.idea/gradle.xml
+Application/.idea/usage.statistics.xml
+Application/.idea/dictionaries/
+Application/.idea/httpRequests/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Log files
+*.log
+
+# OS-specific files
 Application/.DS_Store
+Application/Thumbs.db
+
+# Build directories
+Application/app/build/
+Application/*/build/
+
+# Proguard configuration files
+Application/proguard-rules.pro
+
+# Miscellaneous
+*.apk
+*.ap_
+*.dex
+*.class
 
 # Api key
 Application/app/google-services.json
