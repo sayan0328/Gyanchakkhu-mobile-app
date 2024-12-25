@@ -10,7 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.gyanchakkhu.R
-import com.example.gyanchakkhu.utils.BookDetails
+import com.example.gyanchakkhu.utils.BookDetailsInIssueAndSubmit
 import com.example.gyanchakkhu.utils.DropdownMenu
 import com.example.gyanchakkhu.utils.OneTimePopup
 import com.example.gyanchakkhu.utils.SharedPrefs
@@ -30,5 +30,11 @@ fun SubmitPage() {
         painter = painterResource(id = R.drawable.help_submit),
         contentDescription = "How to Submit"
     )
-    BookDetails(actionLabel = "Submit Now")
+    BookDetailsInIssueAndSubmit(
+        actionLabel = "Submit Now",
+        bookName = "XYZ Book",
+        bookId = "456",
+        librarySection = "B",
+        rackNo = "R2"
+    )
 }

@@ -73,7 +73,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             composable(Routes.search_page) {
                 SearchPage(navController, authViewModel)
             }
-            composable(Routes.records_page) {
+            composable(Routes.history_page) {
                 RecordsPage(navController, authViewModel)
             }
             composable(Routes.profile_page) {

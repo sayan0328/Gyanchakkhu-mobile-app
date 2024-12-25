@@ -8,6 +8,6 @@ object Routes {
     var issue_page = "issue_page"
     var submit_page = "submit_page"
     var search_page = "search_page"
-    var records_page = "records_page"
+    var history_page = "history_page"
     var profile_page = "profile_page"
 }

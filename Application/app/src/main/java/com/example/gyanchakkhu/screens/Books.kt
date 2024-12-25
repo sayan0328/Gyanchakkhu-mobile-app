@@ -1,5 +1,9 @@
 package com.example.gyanchakkhu.screens
 
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.location.Location
+import android.Manifest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,14 +36,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
-import com.example.gyanchakkhu.ui.theme.Blue120
-import com.example.gyanchakkhu.ui.theme.Blue160
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
@@ -47,11 +51,62 @@ import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
 fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
-    var profileSetupComplete by remember { mutableStateOf(false) }
+
+//    // LOCATION SERVICE START
+//
+//    val context = LocalContext.current
+//    val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+//    var location by remember { mutableStateOf<Location?>(null) }
+//    val LOCATION_PERMISSION_REQUEST_CODE = 123
+//
+//    val locationRequest =  LocationRequest.Builder(
+//        Priority.PRIORITY_HIGH_ACCURACY,
+//        1000 // Update interval in milliseconds (1 second)
+//    ).setMinUpdateIntervalMillis(500) // Fastest update interval in milliseconds
+//        .build()
+//    val locationCallback = object : LocationCallback() {
+//        override fun onLocationResult(locationResult: LocationResult) {
+//            super.onLocationResult(locationResult)
+//            location = locationResult.lastLocation
+//        }
+//    }
+//
+//    LaunchedEffect(key1 = Unit) {
+//        if (ActivityCompat.checkSelfPermission(
+//                context,
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat
+//                .checkSelfPermission(
+//                    context,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//                ) != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            ActivityCompat.requestPermissions(
+//                context as Activity,
+//                arrayOf(
+//                    Manifest.permission.ACCESS_FINE_LOCATION,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//                ),
+//                LOCATION_PERMISSION_REQUEST_CODE
+//            )
+//            return@LaunchedEffect
+//        }
+//        locationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+//
+//    }
+//
+//    // LOCATION SERVICE END
+
+    val profileSetupComplete by remember { mutableStateOf(false) }
     var isIssueSelected by remember { mutableStateOf(true) }
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -90,6 +145,15 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 item {
+
+//                    //LOCATION SERVICE START
+//                    if (location != null) {
+//                        Text("Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
+//                    } else {
+//                        Text("Location not available")
+//                    }
+//                    //LOCATION SERVICE END
+
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.Top,
@@ -103,7 +167,7 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             contentScale = ContentScale.Crop
                         )
                         Spacer(modifier = Modifier.height(30.dp))
-                        if (profileSetupComplete) {
+                        if (!profileSetupComplete) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -135,18 +199,12 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             }
                             Spacer(modifier = Modifier.height(30.dp))
                         }
-                        Text(
-                            text = "BOOKS PAGE",
-                            modifier = Modifier.clickable {
-                                profileSetupComplete = !profileSetupComplete
-                            }
-                        )
                         Row {
                             Button(
                                 modifier = Modifier
                                     .padding(12.dp)
                                     .height(32.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = if(isIssueSelected) Blue40 else Color.White),
+                                colors = ButtonDefaults.buttonColors(containerColor = if (isIssueSelected) Blue40 else Color.White),
                                 shape = RoundedCornerShape(8.dp),
                                 contentPadding = PaddingValues(horizontal = 44.dp, vertical = 1.dp),
                                 onClick = {
@@ -155,7 +213,7 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             ) {
                                 Text(
                                     text = "Issue",
-                                    color = if(!isIssueSelected) Blue40 else Color.White,
+                                    color = if (!isIssueSelected) Blue40 else Color.White,
                                     fontSize = 16.sp
                                 )
                             }
@@ -163,7 +221,7 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                                 modifier = Modifier
                                     .padding(12.dp)
                                     .height(32.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = if(!isIssueSelected) Blue40 else Color.White),
+                                colors = ButtonDefaults.buttonColors(containerColor = if (!isIssueSelected) Blue40 else Color.White),
                                 shape = RoundedCornerShape(8.dp),
                                 contentPadding = PaddingValues(horizontal = 44.dp, vertical = 1.dp),
                                 onClick = {
@@ -172,16 +230,16 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             ) {
                                 Text(
                                     text = "Submit",
-                                    color = if(isIssueSelected) Blue40 else Color.White,
+                                    color = if (isIssueSelected) Blue40 else Color.White,
                                     fontSize = 16.sp
                                 )
                             }
                         }
-                        when(isIssueSelected) {
+                        when (isIssueSelected) {
                             true -> IssuePage()
                             false -> SubmitPage()
                         }
-                        Spacer(modifier = Modifier.height(200.dp))
+                        Spacer(modifier = Modifier.height(160.dp))
                     }
                 }
             }
