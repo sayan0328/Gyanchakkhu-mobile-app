@@ -316,17 +316,34 @@ fun BookDetailsInHistory(
     ) {
         Text(
             text = bookName,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.align(Alignment.Start)
+            color = MyPurple80,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = bookId,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.align(Alignment.Start)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Book ID",
+                color = MyPurple80,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = bookId,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MyPurple120)
+                    .padding(horizontal = 12.dp)
+                    .weight(2f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
         Spacer(modifier = Modifier
             .height(20.dp))
         Row(
@@ -339,9 +356,14 @@ fun BookDetailsInHistory(
             ) {
                 Text(
                     text = "Issue Date",
+                    color = MyPurple80,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal,
                 )
                 Text(
-                    text = issueDate
+                    text = issueDate,
+                    color = MyPurple80,
+                    fontWeight = FontWeight.Normal,
                 )
             }
             Column(
@@ -350,10 +372,15 @@ fun BookDetailsInHistory(
             ) {
                 Text(
                     text = "Submit Date",
+                    color = MyPurple80,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal,
                     modifier = Modifier.align(Alignment.End)
                 )
                 Text(
                     text = submitDate,
+                    color = MyPurple80,
+                    fontWeight = FontWeight.Normal,
                     modifier = Modifier.align(Alignment.End)
                 )
             }

@@ -22,14 +22,22 @@ class BooksViewModel: ViewModel(){
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
+    private val _isSearchBarEmpty = MutableStateFlow(true)
+    val isSearchBarEmpty = _isSearchBarEmpty.asStateFlow()
+
+    private val _isHistoryEmpty = MutableStateFlow(false) //Should be initially true
+    val isHistoryEmpty = _isHistoryEmpty.asStateFlow()
+
     private val _books = MutableStateFlow(booksList) //listOf<Book>()
     val books = searchText
         .debounce(500L)
         .onEach { _isSearching.update { true } }
         .combine(_books) { text, books ->
             if(text.isBlank()){
+                _isSearchBarEmpty.update { true }
                 books
             } else {
+                _isSearchBarEmpty.update { false }
                 delay(2000L)
                 books.filter {
                     it.doesMatchSearchQuery(text)

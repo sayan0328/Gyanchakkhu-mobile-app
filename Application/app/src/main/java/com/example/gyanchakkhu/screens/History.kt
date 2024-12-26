@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,8 +38,8 @@ import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
+import com.example.gyanchakkhu.ui.theme.Purple40
 import com.example.gyanchakkhu.utils.BookDetailsInHistory
-import com.example.gyanchakkhu.utils.BookDetailsInSearch
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
@@ -48,8 +49,9 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
 fun RecordsPage(navController: NavController, authViewModel: AuthViewModel) {
-    val viewModel = viewModel<BooksViewModel>()
-    val books by viewModel.books.collectAsState()
+    val booksViewModel = viewModel<BooksViewModel>()
+    val books by booksViewModel.books.collectAsState()
+    val isHistoryEmpty by booksViewModel.isHistoryEmpty.collectAsState()
 
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -130,14 +132,38 @@ fun RecordsPage(navController: NavController, authViewModel: AuthViewModel) {
                         .weight(1f)
                         .padding(horizontal = 24.dp)
                 ) {
-                    items(books) { book ->
-                        Spacer(modifier = Modifier.height(16.dp))
-                        BookDetailsInHistory(
-                            bookName = book.bookName,
-                            bookId = book.bookId,
-                            issueDate = "12/02/24",
-                            submitDate = "15/03/24"
-                        )
+                    if (isHistoryEmpty) {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.empty_booklist),
+                                    contentDescription = "History is Empty",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 40.dp, bottom = 16.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.history_page_message),
+                                    color = Purple40,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
+
+                    } else {
+                        items(books) { book ->
+                            Spacer(modifier = Modifier.height(16.dp))
+                            BookDetailsInHistory(
+                                bookName = book.bookName,
+                                bookId = book.bookId,
+                                issueDate = "12/02/24",
+                                submitDate = "15/03/24"
+                            )
+                        }
                     }
                     item {
                         Spacer(modifier = Modifier.height(160.dp))

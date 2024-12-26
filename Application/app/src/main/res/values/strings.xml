@@ -13,4 +13,6 @@
     <string name='complete_profile'>Please complete your profile</string>
     <string name="issue_message">Tap on the QR code icon to initiate the scanning process.</string>
     <string name="submit_message">First, click on the QR code icon to scan the QR, then start recording by selecting the video icon to complete the process.</string>
+    <string name="search_page_message">Search your needs</string>
+    <string name="history_page_message">It looks like you haven’t\nstarted reading yet!!!!!!!</string>
 </resources>
