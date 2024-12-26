@@ -12,16 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,6 +39,7 @@ import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
+import com.example.gyanchakkhu.ui.theme.Purple40
 import com.example.gyanchakkhu.utils.BookDetailsInSearch
 import com.example.gyanchakkhu.utils.CustomSearchBar
 import com.example.gyanchakkhu.utils.Routes
@@ -53,10 +51,11 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
 fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
-    val viewModel = viewModel<BooksViewModel>()
-    val searchText by viewModel.searchText.collectAsState()
-    val books by viewModel.books.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
+    val booksViewModel = viewModel<BooksViewModel>()
+    val searchText by booksViewModel.searchText.collectAsState()
+    val books by booksViewModel.books.collectAsState()
+    val isSearching by booksViewModel.isSearching.collectAsState()
+    val isSearchBarEmpty by booksViewModel.isSearchBarEmpty.collectAsState()
 
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -134,7 +133,7 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
                 CustomSearchBar(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     value = searchText,
-                    onValueChange = viewModel::onSearchTextChange,
+                    onValueChange = booksViewModel::onSearchTextChange,
                     placeholderText = "Bangla Choti Golpo",
                     containerColor = Color.White
                 )
@@ -144,6 +143,7 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
 //                    modifier = Modifier.padding(horizontal = 24.dp),
 //                    color = Color.Black
 //                )
+
                 if (isSearching) {
                     Box(
                         modifier = Modifier.fillMaxSize()
@@ -159,14 +159,38 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
                             .weight(1f)
                             .padding(horizontal = 24.dp)
                     ) {
-                        items(books) { book ->
-                            Spacer(modifier = Modifier.height(24.dp))
-                            BookDetailsInSearch(
-                                bookName = book.bookName,
-                                bookId = book.bookId,
-                                librarySection = book.libSection,
-                                rackNo = book.rackNo
-                            )
+                        if (isSearchBarEmpty) {
+                            item {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.empty_booklist),
+                                        contentDescription = "Search Bar is Empty",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 40.dp, bottom = 16.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.search_page_message),
+                                        color = Purple40,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+
+                        } else {
+                            items(books) { book ->
+                                Spacer(modifier = Modifier.height(24.dp))
+                                BookDetailsInSearch(
+                                    bookName = book.bookName,
+                                    bookId = book.bookId,
+                                    librarySection = book.libSection,
+                                    rackNo = book.rackNo
+                                )
+                            }
                         }
                         item {
                             Spacer(modifier = Modifier.height(160.dp))

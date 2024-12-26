@@ -41,8 +41,8 @@ fun CustomSearchBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp) // Set the desired height here
-            .clip(RoundedCornerShape(20.dp)) // Rounded corners
+            .height(40.dp)
+            .clip(RoundedCornerShape(20.dp))
             .background(containerColor)
             .then(Modifier)
     ) {
