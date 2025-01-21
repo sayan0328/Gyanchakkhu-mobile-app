@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Gray
+import com.example.gyanchakkhu.ui.theme.Green80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.MyPurple80
 import com.example.gyanchakkhu.utils.CustomTextField
@@ -54,6 +56,12 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
+    val userName = authViewModel.userData.value?.name ?: "Not Found!"
+    val userEmail = authViewModel.userData.value?.email ?: "Not Found!"
+    val userLibName = authViewModel.libraryName.value ?: "Not Found"
+    val userLibUid = authViewModel.userData.value?.libraryUid ?: "Not Found!"
+    val userCardIssueNumber = authViewModel.userData.value?.cardUid ?: "Not Found!"
+    val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     var libName by remember { mutableStateOf("") } // Library Name Field Value
     var libUID by remember { mutableStateOf("") } // Library UID Field Value
 
@@ -127,7 +135,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     modifier = Modifier.weight(1f)
                                 )
                                 Text(
-                                    text = "Sayan Basak",
+                                    text = userName,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
                                         .weight(3f),
@@ -142,7 +150,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     modifier = Modifier.weight(1f)
                                 )
                                 Text(
-                                    text = "sayan@gmail.com",
+                                    text = userEmail,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
                                         .weight(3f),
@@ -207,16 +215,25 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    CustomTextField(
-                                        text = libName,
-                                        onValueChange = {libName = it},
-                                        label = "Enter Library Name"
-                                    )
-                                    CustomTextField(
-                                        text = libUID,
-                                        onValueChange = {libUID = it},
-                                        label = "Enter Library UID"
-                                    )
+                                    if(isUserEnrolledInLibrary){
+                                        Text(
+                                            text = userLibName,
+                                        )
+                                        Text(
+                                            text = userLibUid,
+                                        )
+                                    }else{
+                                        CustomTextField(
+                                            text = libName,
+                                            onValueChange = {libName = it},
+                                            label = "Enter Library Name"
+                                        )
+                                        CustomTextField(
+                                            text = libUID,
+                                            onValueChange = {libUID = it},
+                                            label = "Enter Library UID"
+                                        )
+                                    }
                                 }
                             }
                             Button(
@@ -224,21 +241,23 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     .padding(20.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .height(36.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue40),
-                                onClick = {/*TODO*/ }
+                                colors = ButtonDefaults.buttonColors(containerColor = if(isUserEnrolledInLibrary) Green80 else Blue40),
+                                onClick = {
+                                    if(isUserEnrolledInLibrary) Unit else authViewModel.registerAsLibraryUser(libName, libUID)
+                                }
                             ) {
                                 Text(
-                                    text = "Submit",
+                                    text = if(isUserEnrolledInLibrary) "Registered" else "Submit",
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                 )
                             }
                         }
                         DigitalLibraryCard(
-                            name = "Sayan Basak",
-                            cardIssueNumber = "2024-SB",
-                            libraryName = libName,
-                            libraryUid = libUID
+                            name = userName,
+                            cardIssueNumber = userCardIssueNumber,
+                            libraryName = userLibName,
+                            libraryUid = userLibUid
                         )
                         Button(
                             modifier = Modifier

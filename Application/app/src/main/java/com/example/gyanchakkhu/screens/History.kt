@@ -25,8 +25,13 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +57,7 @@ fun RecordsPage(navController: NavController, authViewModel: AuthViewModel) {
     val booksViewModel = viewModel<BooksViewModel>()
     val books by booksViewModel.books.collectAsState()
     val isHistoryEmpty by booksViewModel.isHistoryEmpty.collectAsState()
+    val topFade = Brush.verticalGradient(0f to Color.Transparent, 0.05f to Color.Black)
 
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -125,9 +131,9 @@ fun RecordsPage(navController: NavController, authViewModel: AuthViewModel) {
                             }
                     )
                 }
-//                Spacer(modifier = Modifier.height(30.dp))
                 LazyColumn(
                     modifier = Modifier
+                        .fadingEdge(topFade)
                         .fillMaxWidth()
                         .weight(1f)
                         .padding(horizontal = 24.dp)
@@ -173,3 +179,10 @@ fun RecordsPage(navController: NavController, authViewModel: AuthViewModel) {
         }
     }
 }
+
+fun Modifier.fadingEdge(brush: Brush) = this
+    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    .drawWithContent {
+        drawContent()
+        drawRect(brush = brush, blendMode = BlendMode.DstIn)
+    }
