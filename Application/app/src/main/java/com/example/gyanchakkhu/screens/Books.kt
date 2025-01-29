@@ -1,9 +1,5 @@
 package com.example.gyanchakkhu.screens
 
-import android.app.Activity
-import android.content.pm.PackageManager
-import android.location.Location
-import android.Manifest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,12 +32,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
@@ -51,11 +45,6 @@ import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
@@ -106,7 +95,8 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
 //
 //    // LOCATION SERVICE END
 
-    val profileSetupComplete by remember { mutableStateOf(false) }
+    val authState = authViewModel.authState.observeAsState()
+    val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     var isIssueSelected by remember { mutableStateOf(true) }
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -117,7 +107,6 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
         end = Offset(0f, POSITIVE_INFINITY)
     )
 
-    val authState = authViewModel.authState.observeAsState()
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
@@ -133,7 +122,7 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                 .fillMaxSize()
                 .background(gradient)
         ) {
-            if (profileSetupComplete) {
+            if (!isUserEnrolledInLibrary) {
                 Image(
                     painter = painterResource(id = R.drawable.bg_idle),
                     contentDescription = "Home Bg",
@@ -164,10 +153,10 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             painter = painterResource(id = R.drawable.bg_home),
                             contentDescription = "Login/SignUp Bg",
                             modifier = Modifier.fillMaxWidth(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.FillWidth
                         )
                         Spacer(modifier = Modifier.height(30.dp))
-                        if (!profileSetupComplete) {
+                        if (!isUserEnrolledInLibrary) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()

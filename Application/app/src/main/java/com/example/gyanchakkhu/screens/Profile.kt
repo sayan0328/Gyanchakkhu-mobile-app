@@ -21,7 +21,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
-import com.example.gyanchakkhu.ui.theme.Gray
 import com.example.gyanchakkhu.ui.theme.Green80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.MyPurple80
@@ -56,14 +54,17 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
-    val userName = authViewModel.userData.value?.name ?: "Not Found!"
-    val userEmail = authViewModel.userData.value?.email ?: "Not Found!"
-    val userLibName = authViewModel.libraryName.value ?: "Not Found"
-    val userLibUid = authViewModel.userData.value?.libraryUid ?: "Not Found!"
-    val userCardIssueNumber = authViewModel.userData.value?.cardUid ?: "Not Found!"
+    val userData by authViewModel.userData.observeAsState()
+    val libName by authViewModel.libraryName.observeAsState()
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
-    var libName by remember { mutableStateOf("") } // Library Name Field Value
-    var libUID by remember { mutableStateOf("") } // Library UID Field Value
+    val userEmail = userData?.email ?: "Not Found!"
+    val userName = userData?.name ?: "Not Found!"
+    val userLibName = libName ?: "Not Found!"
+    val userLibUid = userData?.libraryUid ?: "Not Found!"
+    val userCardIssueNumber = userData?.cardUid ?: "Not Found!"
+
+    var libNameField by remember { mutableStateOf("") } // Library Name Field Value
+    var libUIDField by remember { mutableStateOf("") } // Library UID Field Value
 
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -90,6 +91,13 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                 .fillMaxSize()
                 .background(gradient)
         ) {
+            if (!isUserEnrolledInLibrary) {
+                Image(
+                    painter = painterResource(id = R.drawable.bg_idle),
+                    contentDescription = "Home Bg",
+                    Modifier.align(Alignment.Center)
+                )
+            }
             LazyColumn(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -105,7 +113,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                             painter = painterResource(id = R.drawable.bg_home),
                             contentDescription = "Login/SignUp Bg",
                             modifier = Modifier.fillMaxWidth(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.FillWidth
                         )
                         Spacer(modifier = Modifier.height(30.dp))
                         Column(
@@ -138,7 +146,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     text = userName,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
-                                        .weight(3f),
+                                        .weight(2f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -153,7 +161,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     text = userEmail,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
-                                        .weight(3f),
+                                        .weight(2f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -168,7 +176,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     text = "******",
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
-                                        .weight(3f),
+                                        .weight(2f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -216,21 +224,23 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     if(isUserEnrolledInLibrary){
-                                        Text(
-                                            text = userLibName,
-                                        )
+
+                                            Text(
+                                                text = userLibName,
+                                            )
+
                                         Text(
                                             text = userLibUid,
                                         )
                                     }else{
                                         CustomTextField(
-                                            text = libName,
-                                            onValueChange = {libName = it},
+                                            text = libNameField,
+                                            onValueChange = {libNameField = it},
                                             label = "Enter Library Name"
                                         )
                                         CustomTextField(
-                                            text = libUID,
-                                            onValueChange = {libUID = it},
+                                            text = libUIDField,
+                                            onValueChange = {libUIDField = it},
                                             label = "Enter Library UID"
                                         )
                                     }
@@ -243,7 +253,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     .height(36.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = if(isUserEnrolledInLibrary) Green80 else Blue40),
                                 onClick = {
-                                    if(isUserEnrolledInLibrary) Unit else authViewModel.registerAsLibraryUser(libName, libUID)
+                                    if(isUserEnrolledInLibrary) Unit else authViewModel.registerAsLibraryUser(libNameField, libUIDField)
                                 }
                             ) {
                                 Text(
@@ -253,12 +263,16 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                 )
                             }
                         }
-                        DigitalLibraryCard(
-                            name = userName,
-                            cardIssueNumber = userCardIssueNumber,
-                            libraryName = userLibName,
-                            libraryUid = userLibUid
-                        )
+
+                            DigitalLibraryCard(
+                                name = userName,
+                                cardIssueNumber = userCardIssueNumber,
+                                libraryName = userLibName,
+                                libraryUid = userLibUid,
+                                showCard = isUserEnrolledInLibrary,
+                                message = if(isUserEnrolledInLibrary) "Issue you virtual library card" else "Please enroll in a library"
+                            )
+
                         Button(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp)),

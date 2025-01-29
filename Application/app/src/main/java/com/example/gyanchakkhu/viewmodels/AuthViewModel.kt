@@ -10,8 +10,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.UUID
 
 class AuthViewModel : ViewModel() {
@@ -36,20 +34,32 @@ class AuthViewModel : ViewModel() {
     }
 
     fun checkAuthStatus() {
-        if (auth.currentUser == null) {
+        val currentUser = auth.currentUser
+        _authState.value = AuthState.Loading
+        if (currentUser == null) {
             _authState.value = AuthState.Unauthenticated
             _isEnrolledInLibrary.value = false
         } else {
-            _authState.value = AuthState.Authenticated
-            val userId = auth.currentUser?.uid
-            if (userId != null) {
-                fetchUserData(userId) { user ->
-                    _isEnrolledInLibrary.value = user.libraryUid != null
-                    user.libraryUid?.let { getLibraryName(it) }
+            val userId = currentUser.uid
+            database.child("userList").child(userId).get()
+                .addOnSuccessListener { snapshot ->
+                    if (snapshot.exists()) {
+                        fetchUserData(userId) { user ->
+                            _isEnrolledInLibrary.value = user.libraryUid != null
+                            user.libraryUid?.let { getLibraryName(it) }
+                            _authState.value = AuthState.Authenticated
+                        }
+                    } else {
+                        _authState.value = AuthState.Unauthenticated
+                    }
                 }
-            }
+                .addOnFailureListener { e ->
+                    Log.e("FirebaseCheckAuth", "Error checking authentication status: ${e.message}")
+                    _authState.value = AuthState.Error("Error fetching user data")
+                }
         }
     }
+
 
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
@@ -148,7 +158,13 @@ class AuthViewModel : ViewModel() {
                                 _isEnrolledInLibrary.value = true
                                 _userData.value = user.copy(libraryUid = libraryUid, cardUid = cardUid)
                                 getLibraryName(libraryUid)
+                                Log.d("FirebaseEnroll", "Library user registered successfully")
+                            }.addOnFailureListener { e ->
+                                Log.e("FirebaseEnroll", "Could not update library user data: ${e.message}")
                             }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("FirebaseEnroll", "Could not register as library user: ${e.message}")
                         }
                 } else {
                     _authState.value = AuthState.Error("Library name and ID do not match")
