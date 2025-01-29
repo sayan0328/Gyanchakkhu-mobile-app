@@ -52,6 +52,7 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 @Composable
 fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
     val booksViewModel = viewModel<BooksViewModel>()
+    val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val searchText by booksViewModel.searchText.collectAsState()
     val books by booksViewModel.books.collectAsState()
     val isSearching by booksViewModel.isSearching.collectAsState()
@@ -82,11 +83,13 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
                 .fillMaxSize()
                 .background(gradient)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.bg_idle),
-                contentDescription = "Home Bg",
-                Modifier.align(Alignment.Center)
-            )
+            if (!isUserEnrolledInLibrary) {
+                Image(
+                    painter = painterResource(id = R.drawable.bg_idle),
+                    contentDescription = "Home Bg",
+                    Modifier.align(Alignment.Center)
+                )
+            }
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top,
@@ -97,39 +100,41 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
                     painter = painterResource(id = R.drawable.bg_home),
                     contentDescription = "Login/SignUp Bg",
                     modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.FillWidth
                 )
                 Spacer(modifier = Modifier.height(30.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color.White)
-                        .padding(horizontal = 20.dp)
-                        .height(36.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.complete_profile),
-                        fontSize = 14.sp
-                    )
-                    Text(
-                        text = "Goto Profile",
-                        color = Blue80,
-                        fontSize = 14.sp,
+                if (!isUserEnrolledInLibrary) {
+                    Row(
                         modifier = Modifier
-                            .clickable {
-                                navController.navigate(Routes.profile_page) {
-                                    popUpTo(Routes.home_page) {
-                                        inclusive = true
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White)
+                            .padding(horizontal = 20.dp)
+                            .height(36.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.complete_profile),
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = "Goto Profile",
+                            color = Blue80,
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .clickable {
+                                    navController.navigate(Routes.profile_page) {
+                                        popUpTo(Routes.home_page) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
-                            }
-                    )
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
-                Spacer(modifier = Modifier.height(24.dp))
                 CustomSearchBar(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     value = searchText,

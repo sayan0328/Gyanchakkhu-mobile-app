@@ -81,4 +81,5 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
     implementation("com.google.firebase:firebase-database-ktx:20.3.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

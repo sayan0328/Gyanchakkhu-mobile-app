@@ -41,10 +41,13 @@ import com.example.gyanchakkhu.ui.theme.Blue80
 fun DigitalLibraryCard(
     name: String,
     cardIssueNumber: String,
-    libraryName: String, libraryUid: String,
+    libraryName: String,
+    libraryUid: String,
+    showCard: Boolean,
+    message: String,
     modifier: Modifier = Modifier
 ) {
-    var show by remember { mutableStateOf(false) }
+    var show by remember { mutableStateOf(showCard) }
 
     Column(
         modifier = Modifier
@@ -104,10 +107,6 @@ fun DigitalLibraryCard(
                     text = "Library UID : $libraryUid",
                     color = Color.Gray
                 )
-                Text(
-                    text = "!show",
-                    Modifier.clickable { show = false }
-                )
             }
 
             Box(
@@ -121,9 +120,9 @@ fun DigitalLibraryCard(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    TextButton(onClick = { show = true }) {
+                    TextButton(onClick = { if(showCard) { show = true } else Unit }) {
                         Text(
-                            text = "Issue your virtual library card",
+                            text = message,
                             color = Blue80,
                             fontSize = 18.sp
                         )

@@ -28,7 +28,8 @@ class BooksViewModel: ViewModel(){
     private val _isHistoryEmpty = MutableStateFlow(false) //Should be initially true
     val isHistoryEmpty = _isHistoryEmpty.asStateFlow()
 
-    private val _books = MutableStateFlow(booksList) //listOf<Book>()
+//    private val _books = MutableStateFlow(booksList) //listOf<Book>()
+    private val _books = MutableStateFlow(listOf<Book>()) //listOf<Book>()
     val books = searchText
         .debounce(500L)
         .onEach { _isSearching.update { true } }
@@ -75,35 +76,35 @@ data class Book(
     }
 }
 
-private val booksList = listOf( //Predefined list of books for testing purposes
-    Book(
-        bookName = "ABC Book",
-        bookId = "123",
-        libSection = "A",
-        rackNo = "R1"
-    ),
-    Book(
-        bookName = "XYZ Book",
-        bookId = "456",
-        libSection = "B",
-        rackNo = "R2"
-    ),
-    Book(
-        bookName = "PQR Book",
-        bookId = "789",
-        libSection = "C",
-        rackNo = "R3"
-    ),
-    Book(
-        bookName = "MNO Book",
-        bookId = "678",
-        libSection = "D",
-        rackNo = "R4"
-    ),
-    Book(
-        bookName = "GHI Book",
-        bookId = "345",
-        libSection = "E",
-        rackNo = "R5"
-    ),
-)
+//private val booksList = listOf( //Predefined list of books for testing purposes
+//    Book(
+//        bookName = "ABC Book",
+//        bookId = "123",
+//        libSection = "A",
+//        rackNo = "R1"
+//    ),
+//    Book(
+//        bookName = "XYZ Book",
+//        bookId = "456",
+//        libSection = "B",
+//        rackNo = "R2"
+//    ),
+//    Book(
+//        bookName = "PQR Book",
+//        bookId = "789",
+//        libSection = "C",
+//        rackNo = "R3"
+//    ),
+//    Book(
+//        bookName = "MNO Book",
+//        bookId = "678",
+//        libSection = "D",
+//        rackNo = "R4"
+//    ),
+//    Book(
+//        bookName = "GHI Book",
+//        bookId = "345",
+//        libSection = "E",
+//        rackNo = "R5"
+//    ),
+//)

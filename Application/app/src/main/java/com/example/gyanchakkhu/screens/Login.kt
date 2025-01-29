@@ -90,7 +90,7 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
                         painter = painterResource(id = R.drawable.bg_lgsg),
                         contentDescription = "Login/SignUp Bg",
                         modifier = Modifier.fillMaxWidth(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.FillWidth
                     )
                 }
                 item {

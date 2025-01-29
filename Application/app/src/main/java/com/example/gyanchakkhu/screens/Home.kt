@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
@@ -42,7 +45,8 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
 fun HomePage(navController: NavController, authViewModel: AuthViewModel) {
-
+    val authState = authViewModel.authState.observeAsState()
+    val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val gradient = gradientBrush(
         colorStops = arrayOf(
             0.0f to MyPurple120,
@@ -52,10 +56,11 @@ fun HomePage(navController: NavController, authViewModel: AuthViewModel) {
         end = Offset(0f, POSITIVE_INFINITY)
     )
 
-    val authState = authViewModel.authState.observeAsState()
     LaunchedEffect(authState.value) {
-        when(authState.value) {
-            is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
+        when (authState.value) {
+            is AuthState.Unauthenticated -> {
+                navController.navigate(Routes.login_page)
+            }
             else -> Unit
         }
     }
@@ -68,11 +73,13 @@ fun HomePage(navController: NavController, authViewModel: AuthViewModel) {
                 .fillMaxSize()
                 .background(gradient)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.bg_idle),
-                contentDescription = "Home Bg",
-                Modifier.align(Alignment.Center)
-            )
+            if (!isUserEnrolledInLibrary) {
+                Image(
+                    painter = painterResource(id = R.drawable.bg_idle),
+                    contentDescription = "Home Bg",
+                    Modifier.align(Alignment.Center)
+                )
+            }
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top,
@@ -83,39 +90,41 @@ fun HomePage(navController: NavController, authViewModel: AuthViewModel) {
                     painter = painterResource(id = R.drawable.bg_home),
                     contentDescription = "Login/SignUp Bg",
                     modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.FillWidth
                 )
                 Spacer(modifier = Modifier.height(30.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color.White)
-                        .padding(horizontal = 20.dp)
-                        .height(36.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.complete_profile),
-                        fontSize = 14.sp
-                    )
+                if (!isUserEnrolledInLibrary) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White)
+                            .padding(horizontal = 20.dp)
+                            .height(36.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.complete_profile),
+                            fontSize = 14.sp
+                        )
                         Text(
                             text = "Goto Profile",
                             color = Blue80,
                             fontSize = 14.sp,
                             modifier = Modifier
                                 .clickable {
-                                    navController.navigate(Routes.profile_page){
+                                    navController.navigate(Routes.profile_page) {
                                         popUpTo(Routes.home_page) {
                                             inclusive = true
                                         }
                                     }
                                 }
                         )
+                    }
+                    Spacer(modifier = Modifier.height(30.dp))
                 }
-                Spacer(modifier = Modifier.height(30.dp))
                 Button(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp)),
