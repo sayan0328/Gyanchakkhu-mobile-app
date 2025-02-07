@@ -24,9 +24,10 @@ import com.example.gyanchakkhu.screens.SignupPage
 import com.example.gyanchakkhu.screens.SubmitPage
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.example.gyanchakkhu.viewmodels.BooksViewModel
 
 @Composable
-fun AppNavigation(authViewModel: AuthViewModel) {
+fun AppNavigation(authViewModel: AuthViewModel, booksViewModel: BooksViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -74,10 +75,10 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                 SubmitPage()
             }
             composable(Routes.search_page) {
-                SearchPage(navController, authViewModel)
+                SearchPage(navController, authViewModel, booksViewModel)
             }
             composable(Routes.history_page) {
-                RecordsPage(navController, authViewModel)
+                RecordsPage(navController, authViewModel, booksViewModel)
             }
             composable(Routes.profile_page) {
                 ProfilePage(navController, authViewModel)
