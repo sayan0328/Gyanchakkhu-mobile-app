@@ -12,7 +12,9 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import java.util.UUID
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(
+    private val booksViewModel: BooksViewModel
+) : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val database = Firebase.database.reference
@@ -46,7 +48,10 @@ class AuthViewModel : ViewModel() {
                     if (snapshot.exists()) {
                         fetchUserData(userId) { user ->
                             _isEnrolledInLibrary.value = user.libraryUid != null
-                            user.libraryUid?.let { getLibraryName(it) }
+                            user.libraryUid?.let {
+                                getLibraryName(it)
+                                booksViewModel.fetchBooks(it)
+                            }
                             _authState.value = AuthState.Authenticated
                         }
                     } else {
@@ -114,6 +119,7 @@ class AuthViewModel : ViewModel() {
         _userData.value = UserData()
         _isEnrolledInLibrary.value = false
         _libraryName.value = "Not Found!"
+        booksViewModel.clearBookList()
     }
 
     private fun fetchUserData(userId: String, onComplete: (UserData) -> Unit = {}) {
@@ -158,6 +164,7 @@ class AuthViewModel : ViewModel() {
                                 _isEnrolledInLibrary.value = true
                                 _userData.value = user.copy(libraryUid = libraryUid, cardUid = cardUid)
                                 getLibraryName(libraryUid)
+                                BooksViewModel().fetchBooks(libraryUid)
                                 Log.d("FirebaseEnroll", "Library user registered successfully")
                             }.addOnFailureListener { e ->
                                 Log.e("FirebaseEnroll", "Could not update library user data: ${e.message}")

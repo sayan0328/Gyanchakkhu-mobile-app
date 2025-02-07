@@ -53,8 +53,7 @@ import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
-fun RecordsPage(navController: NavController, authViewModel: AuthViewModel) {
-    val booksViewModel = viewModel<BooksViewModel>()
+fun RecordsPage(navController: NavController, authViewModel: AuthViewModel, booksViewModel: BooksViewModel) {
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val books by booksViewModel.books.collectAsState()
     val isHistoryEmpty by booksViewModel.isHistoryEmpty.collectAsState()

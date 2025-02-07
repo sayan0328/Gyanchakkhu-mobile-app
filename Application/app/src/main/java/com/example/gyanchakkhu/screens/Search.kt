@@ -50,8 +50,7 @@ import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
-fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
-    val booksViewModel = viewModel<BooksViewModel>()
+fun SearchPage(navController: NavController, authViewModel: AuthViewModel, booksViewModel: BooksViewModel) {
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val searchText by booksViewModel.searchText.collectAsState()
     val books by booksViewModel.books.collectAsState()
@@ -187,14 +186,26 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel) {
                             }
 
                         } else {
-                            items(books) { book ->
-                                Spacer(modifier = Modifier.height(24.dp))
-                                BookDetailsInSearch(
-                                    bookName = book.bookName,
-                                    bookId = book.bookId,
-                                    librarySection = book.libSection,
-                                    rackNo = book.rackNo
-                                )
+                            if(books.isEmpty()){
+                                item{
+                                    Image(
+                                        painter = painterResource(R.drawable.empty_booklist),
+                                        contentDescription = "No books found",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 40.dp, bottom = 16.dp)
+                                    )
+                                }
+                            }else {
+                                items(books) { book ->
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    BookDetailsInSearch(
+                                        bookName = book.bookName,
+                                        bookId = book.bookId,
+                                        librarySection = book.libSection,
+                                        rackNo = book.rackNo
+                                    )
+                                }
                             }
                         }
                         item {
