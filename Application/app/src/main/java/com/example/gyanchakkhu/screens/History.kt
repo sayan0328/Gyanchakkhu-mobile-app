@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,14 +39,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.Purple40
 import com.example.gyanchakkhu.utils.BookDetailsInHistory
+import com.example.gyanchakkhu.utils.CustomSearchBar
 import com.example.gyanchakkhu.utils.Routes
+import com.example.gyanchakkhu.utils.fadingEdge
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
@@ -53,10 +55,15 @@ import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
-fun RecordsPage(navController: NavController, authViewModel: AuthViewModel, booksViewModel: BooksViewModel) {
+fun HistoryPage(
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    booksViewModel: BooksViewModel
+) {
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
-    val books by booksViewModel.books.collectAsState()
-    val isHistoryEmpty by booksViewModel.isHistoryEmpty.collectAsState()
+    val myBooks by booksViewModel.myBooks.collectAsState()
+    val searchText by booksViewModel.searchText.collectAsState()
+    val isSearching by booksViewModel.isSearching.collectAsState()
     val topFade = Brush.verticalGradient(0f to Color.Transparent, 0.05f to Color.Black)
 
     val gradient = gradientBrush(
@@ -74,6 +81,7 @@ fun RecordsPage(navController: NavController, authViewModel: AuthViewModel, book
             is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
             else -> Unit
         }
+        booksViewModel.clearSearchText()
     }
 
     Surface(
@@ -134,63 +142,73 @@ fun RecordsPage(navController: NavController, authViewModel: AuthViewModel, book
                                 }
                         )
                     }
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
-                LazyColumn(
-                    modifier = Modifier
-                        .fadingEdge(topFade)
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(horizontal = 24.dp)
-                ) {
-                    if (isHistoryEmpty) {
-                        item {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.empty_booklist),
-                                    contentDescription = "History is Empty",
+                CustomSearchBar(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    value = searchText,
+                    onValueChange = booksViewModel::onSearchTextChange,
+                    placeholderText = "Search your book",
+                    containerColor = Color.White
+                )
+                if (isSearching) {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fadingEdge(topFade)
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(horizontal = 24.dp)
+                    ) {
+                        if (myBooks.isEmpty()) {
+                            item {
+                                Column(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 40.dp, bottom = 16.dp)
-                                )
-                                Text(
-                                    text = stringResource(R.string.history_page_message),
-                                    color = Purple40,
-                                    fontWeight = FontWeight.SemiBold,
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.empty_booklist),
+                                        contentDescription = "History is Empty",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 40.dp, bottom = 16.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.history_page_message),
+                                        color = Purple40,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+
+                        } else {
+                            item {
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                            items(myBooks) { book ->
+                                Spacer(modifier = Modifier.height(16.dp))
+                                BookDetailsInHistory(
+                                    bookName = book.bookName,
+                                    bookId = book.bookId,
+                                    issueDate = "12/02/24",
+                                    submitDate = "15/03/24"
                                 )
                             }
                         }
-
-                    } else {
-                        item{
-                            Spacer(modifier = Modifier.height(12.dp))
+                        item {
+                            Spacer(modifier = Modifier.height(160.dp))
                         }
-                        items(books) { book ->
-                            Spacer(modifier = Modifier.height(16.dp))
-                            BookDetailsInHistory(
-                                bookName = book.bookName,
-                                bookId = book.bookId,
-                                issueDate = "12/02/24",
-                                submitDate = "15/03/24"
-                            )
-                        }
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(160.dp))
                     }
                 }
             }
         }
     }
 }
-
-fun Modifier.fadingEdge(brush: Brush) = this
-    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-    .drawWithContent {
-        drawContent()
-        drawRect(brush = brush, blendMode = BlendMode.DstIn)
-    }

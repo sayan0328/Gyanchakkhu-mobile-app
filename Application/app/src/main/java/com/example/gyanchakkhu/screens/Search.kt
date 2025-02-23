@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -34,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
@@ -43,6 +43,7 @@ import com.example.gyanchakkhu.ui.theme.Purple40
 import com.example.gyanchakkhu.utils.BookDetailsInSearch
 import com.example.gyanchakkhu.utils.CustomSearchBar
 import com.example.gyanchakkhu.utils.Routes
+import com.example.gyanchakkhu.utils.fadingEdge
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
@@ -50,13 +51,17 @@ import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
-fun SearchPage(navController: NavController, authViewModel: AuthViewModel, booksViewModel: BooksViewModel) {
+fun SearchPage(
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    booksViewModel: BooksViewModel
+) {
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val searchText by booksViewModel.searchText.collectAsState()
     val books by booksViewModel.books.collectAsState()
     val isSearching by booksViewModel.isSearching.collectAsState()
     val isSearchBarEmpty by booksViewModel.isSearchBarEmpty.collectAsState()
-
+    val topFade = Brush.verticalGradient(0f to Color.Transparent, 0.05f to Color.Black)
     val gradient = gradientBrush(
         colorStops = arrayOf(
             0.0f to MyPurple120,
@@ -72,6 +77,7 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel, books
             is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
             else -> Unit
         }
+        booksViewModel.clearSearchText()
     }
 
     Surface(
@@ -138,16 +144,9 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel, books
                     modifier = Modifier.padding(horizontal = 16.dp),
                     value = searchText,
                     onValueChange = booksViewModel::onSearchTextChange,
-                    placeholderText = "Bangla Choti Golpo",
+                    placeholderText = "Search your book",
                     containerColor = Color.White
                 )
-
-//                Spacer(modifier = Modifier.height(16.dp))
-//                HorizontalDivider(
-//                    modifier = Modifier.padding(horizontal = 24.dp),
-//                    color = Color.Black
-//                )
-
                 if (isSearching) {
                     Box(
                         modifier = Modifier.fillMaxSize()
@@ -159,6 +158,7 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel, books
                 } else {
                     LazyColumn(
                         modifier = Modifier
+                            .fadingEdge(topFade)
                             .fillMaxWidth()
                             .weight(1f)
                             .padding(horizontal = 24.dp)
@@ -186,17 +186,28 @@ fun SearchPage(navController: NavController, authViewModel: AuthViewModel, books
                             }
 
                         } else {
-                            if(books.isEmpty()){
-                                item{
-                                    Image(
-                                        painter = painterResource(R.drawable.empty_booklist),
-                                        contentDescription = "No books found",
+                            if (books.isEmpty()) {
+                                item {
+                                    Column(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 40.dp, bottom = 16.dp)
-                                    )
+                                            .fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.empty_booklist),
+                                            contentDescription = "No books found",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 40.dp, bottom = 16.dp)
+                                        )
+                                        Text(
+                                            text = "No books found", // Replace with your message
+                                            color = Purple40,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                    }
                                 }
-                            }else {
+                            } else {
                                 items(books) { book ->
                                     Spacer(modifier = Modifier.height(24.dp))
                                     BookDetailsInSearch(
