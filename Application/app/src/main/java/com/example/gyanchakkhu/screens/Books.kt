@@ -1,5 +1,9 @@
 package com.example.gyanchakkhu.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,10 +36,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
@@ -45,6 +51,11 @@ import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
@@ -52,46 +63,46 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
 
 //    // LOCATION SERVICE START
 //
-//    val context = LocalContext.current
-//    val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-//    var location by remember { mutableStateOf<Location?>(null) }
-//    val LOCATION_PERMISSION_REQUEST_CODE = 123
-//
-//    val locationRequest =  LocationRequest.Builder(
-//        Priority.PRIORITY_HIGH_ACCURACY,
-//        1000 // Update interval in milliseconds (1 second)
-//    ).setMinUpdateIntervalMillis(500) // Fastest update interval in milliseconds
-//        .build()
-//    val locationCallback = object : LocationCallback() {
-//        override fun onLocationResult(locationResult: LocationResult) {
-//            super.onLocationResult(locationResult)
-//            location = locationResult.lastLocation
-//        }
-//    }
-//
-//    LaunchedEffect(key1 = Unit) {
-//        if (ActivityCompat.checkSelfPermission(
-//                context,
-//                Manifest.permission.ACCESS_FINE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat
-//                .checkSelfPermission(
-//                    context,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION
-//                ) != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            ActivityCompat.requestPermissions(
-//                context as Activity,
-//                arrayOf(
-//                    Manifest.permission.ACCESS_FINE_LOCATION,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION
-//                ),
-//                LOCATION_PERMISSION_REQUEST_CODE
-//            )
-//            return@LaunchedEffect
-//        }
-//        locationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-//
-//    }
+    val context = LocalContext.current
+    val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var location by remember { mutableStateOf<Location?>(null) }
+    val LOCATION_PERMISSION_REQUEST_CODE = 123
+
+    val locationRequest =  LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        1000 // Update interval in milliseconds (1 second)
+    ).setMinUpdateIntervalMillis(500) // Fastest update interval in milliseconds
+        .build()
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            super.onLocationResult(locationResult)
+            location = locationResult.lastLocation
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat
+                .checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+            return@LaunchedEffect
+        }
+        locationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+
+    }
 //
 //    // LOCATION SERVICE END
 
@@ -136,11 +147,11 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                 item {
 
 //                    //LOCATION SERVICE START
-//                    if (location != null) {
-//                        Text("Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
-//                    } else {
-//                        Text("Location not available")
-//                    }
+                    if (location != null) {
+                        Text("Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
+                    } else {
+                        Text("Location not available")
+                    }
 //                    //LOCATION SERVICE END
 
                     Column(

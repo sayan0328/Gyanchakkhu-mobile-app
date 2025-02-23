@@ -50,7 +50,9 @@ class AuthViewModel(
                             _isEnrolledInLibrary.value = user.libraryUid != null
                             user.libraryUid?.let {
                                 getLibraryName(it)
-                                booksViewModel.fetchBooks(it)
+                                booksViewModel.fetchBooks(it, database)
+                                booksViewModel.fetchMyBooks(userId, it, database)
+
                             }
                             _authState.value = AuthState.Authenticated
                         }
@@ -120,6 +122,7 @@ class AuthViewModel(
         _isEnrolledInLibrary.value = false
         _libraryName.value = "Not Found!"
         booksViewModel.clearBookList()
+        booksViewModel.clearMyBookList()
     }
 
     private fun fetchUserData(userId: String, onComplete: (UserData) -> Unit = {}) {
@@ -164,7 +167,8 @@ class AuthViewModel(
                                 _isEnrolledInLibrary.value = true
                                 _userData.value = user.copy(libraryUid = libraryUid, cardUid = cardUid)
                                 getLibraryName(libraryUid)
-                                BooksViewModel().fetchBooks(libraryUid)
+                                booksViewModel.fetchBooks(libraryUid, database)
+                                booksViewModel.fetchMyBooks(userId, libraryUid, database)
                                 Log.d("FirebaseEnroll", "Library user registered successfully")
                             }.addOnFailureListener { e ->
                                 Log.e("FirebaseEnroll", "Could not update library user data: ${e.message}")
