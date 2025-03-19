@@ -2,8 +2,13 @@ package com.example.gyanchakkhu.screens
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.view.View
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,16 +46,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
+import com.example.gyanchakkhu.utils.QRCodeScannerScreen
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
+import com.example.gyanchakkhu.utils.parseQRCodeData
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -60,55 +71,16 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
 fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
-
-//    // LOCATION SERVICE START
-//
     val context = LocalContext.current
-    val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    var location by remember { mutableStateOf<Location?>(null) }
-    val LOCATION_PERMISSION_REQUEST_CODE = 123
-
-    val locationRequest =  LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        1000 // Update interval in milliseconds (1 second)
-    ).setMinUpdateIntervalMillis(500) // Fastest update interval in milliseconds
-        .build()
-    val locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            super.onLocationResult(locationResult)
-            location = locationResult.lastLocation
-        }
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat
-                .checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                context as Activity,
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-            return@LaunchedEffect
-        }
-        locationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-
-    }
-//
-//    // LOCATION SERVICE END
+    var isIssueDataVisible by remember { mutableStateOf(false) }
+    var issueBookData by remember { mutableStateOf(listOf<String>("","","","")) }
+    var isSubmitDataVisible by remember { mutableStateOf(false) }
+    var submitBookData by remember { mutableStateOf(listOf<String>("","","","")) }
 
     val authState = authViewModel.authState.observeAsState()
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     var isIssueSelected by remember { mutableStateOf(true) }
+    var isCameraOn by remember { mutableStateOf(false) }
     val gradient = gradientBrush(
         colorStops = arrayOf(
             0.0f to MyPurple120,
@@ -122,6 +94,39 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
         when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
             else -> Unit
+        }
+    }
+
+    val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var location by remember { mutableStateOf<Location?>(null) }
+
+    val permissions = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissionsResult ->
+        val allGranted = permissionsResult.all { it.value }
+        if (allGranted) {
+            Toast.makeText(context, "All permissions granted!", Toast.LENGTH_SHORT).show()
+            requestLocationUpdates(context, locationClient) { newLocation ->
+                location = newLocation
+            }
+        } else {
+            Toast.makeText(context, "Some permissions were denied!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (permissions.any { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }) {
+            permissionLauncher.launch(permissions)
+        } else {
+            requestLocationUpdates(context, locationClient) { newLocation ->
+                location = newLocation
+            }
         }
     }
 
@@ -146,13 +151,13 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
             ) {
                 item {
 
-//                    //LOCATION SERVICE START
+                    //LOCATION SERVICE START
                     if (location != null) {
                         Text("Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
                     } else {
                         Text("Location not available")
                     }
-//                    //LOCATION SERVICE END
+                    //LOCATION SERVICE END
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
@@ -236,13 +241,64 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             }
                         }
                         when (isIssueSelected) {
-                            true -> IssuePage()
-                            false -> SubmitPage()
+                            true -> IssuePage(issueBookData, onClick = { isCameraOn = true }, isIssueDataVisible)
+                            false -> SubmitPage(submitBookData, onClick = { isCameraOn = true }, isSubmitDataVisible)
                         }
                         Spacer(modifier = Modifier.height(160.dp))
                     }
                 }
             }
+            if(isCameraOn){
+                Dialog(
+                    onDismissRequest = { isCameraOn = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Black)
+                    ) {
+                        QRCodeScannerScreen(
+                            onResult = {
+                                if(isIssueSelected) {
+                                    issueBookData = parseQRCodeData(it)
+                                    isCameraOn = false
+                                    isIssueDataVisible = true
+                                }else{
+                                    submitBookData = parseQRCodeData(it)
+                                    isCameraOn = false
+                                    isSubmitDataVisible = true
+                                }
+                            },
+                            onClose = { isCameraOn = false }
+                        )
+                    }
+                }
+            }
         }
+    }
+}
+
+private fun requestLocationUpdates(
+    context: Context,
+    locationClient: FusedLocationProviderClient,
+    onLocationUpdated: (Location?) -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        1000
+    ).setMinUpdateIntervalMillis(500).build()
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            super.onLocationResult(locationResult)
+            onLocationUpdated(locationResult.lastLocation)
+        }
+    }
+
+    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    ) {
+        locationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 }

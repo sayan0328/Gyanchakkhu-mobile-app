@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,10 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
@@ -46,9 +49,9 @@ fun BookDetailsInIssueAndSubmit(
     bookName: String = "",
     bookId: String = "",
     librarySection: String = "",
-    rackNo: String = ""
+    rackNo: String = "",
+    isVisible: Boolean = false
 ) {
-    var show by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
             .padding(24.dp)
@@ -59,13 +62,15 @@ fun BookDetailsInIssueAndSubmit(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Book Details",
-            modifier = Modifier.padding(top = 16.dp),
-            color = Purple20,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
+        if(isVisible){
+            Text(
+                text = "Book Details",
+                modifier = Modifier.padding(top = 16.dp),
+                color = Purple20,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -166,7 +171,6 @@ fun BookDetailsInIssueAndSubmit(
                     contentPadding = PaddingValues(horizontal = 44.dp, vertical = 1.dp),
                     onClick = {
                         /*TODO*/
-                        show = false
                     }
                 ) {
                     Text(
@@ -179,22 +183,31 @@ fun BookDetailsInIssueAndSubmit(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(if (!show) Color.White else Color.Transparent),
+                    .background(if (!isVisible) Color.White else Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
                 androidx.compose.animation.AnimatedVisibility(
-                    visible = !show,
+                    visible = !isVisible,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    TextButton(onClick = { show = true }) {
-                        Text(
-                            text = "Issue your virtual library card",
-                            color = Blue80,
-                            fontSize = 18.sp
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.scan_qr_message),
+                        color = Blue80,
+                        fontSize = 18.sp
+
+                    )
+
                 }
+            }
+            if(!isVisible){
+                Text(
+                    text = "Book Details",
+                    modifier = Modifier.padding(top = 16.dp).align(Alignment.TopCenter),
+                    color = Purple20,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
@@ -385,5 +398,154 @@ fun BookDetailsInHistory(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun RecentIssuesInHome(
+    modifier: Modifier = Modifier,
+    bookName: String = "",
+    bookId: String = "",
+    issueDate: String = "",
+    submitDate: String = ""
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Book Name",
+                color = MyPurple80,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = bookName,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MyPurple120)
+                    .padding(horizontal = 12.dp)
+                    .weight(2f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Book ID",
+                color = MyPurple80,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = bookId,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MyPurple120)
+                    .padding(horizontal = 12.dp)
+                    .weight(2f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Issue Date",
+                    color = MyPurple80,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal
+                )
+                Text(
+                    text = issueDate,
+                    color = MyPurple80,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Submit Date",
+                    color = MyPurple80,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.align(Alignment.End)
+                )
+                Text(
+                    text = submitDate,
+                    color = MyPurple80,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.align(Alignment.End)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BookDetailsInHome(
+    modifier: Modifier = Modifier,
+    bookName: String = "",
+    bookDesc: String = ""
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Book Name",
+                color = MyPurple80,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = bookName,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MyPurple120)
+                    .padding(horizontal = 12.dp)
+                    .weight(2f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = bookDesc,
+            color = MyPurple80,
+            fontSize = 14.sp
+        )
     }
 }

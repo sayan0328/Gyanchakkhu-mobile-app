@@ -23,3 +23,5 @@ val Gray = Color(0xFF575757)
 val MyPurple120 = Color(0xFFC8C8FF)
 val MyPurple80 = Color(0xFF8486FF)
 val MyPurple40 = Color(0xFF6E70B8)
+
+val MyRed80 = Color(0xFFFF6469)

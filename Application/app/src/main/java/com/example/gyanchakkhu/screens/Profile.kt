@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,18 +39,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
-import com.example.gyanchakkhu.ui.theme.Green80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.MyPurple80
+import com.example.gyanchakkhu.ui.theme.MyRed80
 import com.example.gyanchakkhu.utils.CustomTextField
 import com.example.gyanchakkhu.utils.DigitalLibraryCard
+import com.example.gyanchakkhu.utils.MyHorizontalDivider
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
     val userData by authViewModel.userData.observeAsState()
@@ -115,11 +114,11 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                             modifier = Modifier.fillMaxWidth(),
                             contentScale = ContentScale.FillWidth
                         )
-                        Spacer(modifier = Modifier.height(30.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(20.dp)
+                                .padding(horizontal = 20.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
                                 .padding(horizontal = 30.dp),
@@ -196,10 +195,11 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                 )
                             }
                         }
+                        MyHorizontalDivider()
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(20.dp)
+                                .padding(horizontal = 20.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
                                 .padding(horizontal = 30.dp),
@@ -224,13 +224,13 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     if(isUserEnrolledInLibrary){
-
                                             Text(
                                                 text = userLibName,
+                                                modifier = Modifier.align(Alignment.End)
                                             )
-
                                         Text(
                                             text = userLibUid,
+                                            modifier = Modifier.align(Alignment.End)
                                         )
                                     }else{
                                         CustomTextField(
@@ -251,27 +251,36 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     .padding(20.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .height(36.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = if(isUserEnrolledInLibrary) Green80 else Blue40),
+                                colors = ButtonDefaults.buttonColors(containerColor = if(isUserEnrolledInLibrary) MyRed80 else Blue40),
                                 onClick = {
-                                    if(isUserEnrolledInLibrary) Unit else authViewModel.registerAsLibraryUser(libNameField, libUIDField)
+                                    if(isUserEnrolledInLibrary) {
+                                        authViewModel.removeLibrary()
+                                        libNameField = ""
+                                        libUIDField = ""
+                                    } else authViewModel.registerAsLibraryUser(libNameField, libUIDField)
                                 }
                             ) {
                                 Text(
-                                    text = if(isUserEnrolledInLibrary) "Registered" else "Submit",
+                                    text = if(isUserEnrolledInLibrary) "Change Library" else "Submit",
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                 )
                             }
                         }
-
-                            DigitalLibraryCard(
-                                name = userName,
-                                cardIssueNumber = userCardIssueNumber,
-                                libraryName = userLibName,
-                                libraryUid = userLibUid,
-                                showCard = isUserEnrolledInLibrary,
-                                message = if(isUserEnrolledInLibrary) "Issue you virtual library card" else "Please enroll in a library"
-                            )
+                        MyHorizontalDivider()
+                        Text(
+                            text = "Virtual Library Card",
+                            color = MyPurple80,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        DigitalLibraryCard(
+                            name = userName,
+                            cardIssueNumber = userCardIssueNumber,
+                            libraryName = userLibName,
+                            libraryUid = userLibUid,
+                            isUserEnrolledInLibrary = isUserEnrolledInLibrary,)
 
                         Button(
                             modifier = Modifier
