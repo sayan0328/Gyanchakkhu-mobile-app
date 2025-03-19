@@ -1,18 +1,23 @@
 <resources>
-    <string name="app_name">GyanChakkhu</string>
-    <string name='login'>Log In</string>
-    <string name='welcome_lg'>Welcome Back. Please Enter Your Details.</string>
-    <string name='forgot_password'>I forgot my password</string>
-    <string name='no_account'>Don’t have an account?</string>
-    <string name='goto_signup'>Create an account</string>
-    <string name='signup'>Sign Up</string>
-    <string name='welcome_sg'>New Here? Create Your Account Now!</string>
-    <string name='have_account'>Already have an account?</string>
-    <string name='goto_login'>Log In</string>
-    <string name='help'>Need Help?</string>
-    <string name='complete_profile'>Please complete your profile</string>
+    <string name="app_name">Gyanchakkhu</string>
+    <string name="login">Log In</string>
+    <string name="welcome_lg">Welcome Back. Please Enter Your Details.</string>
+    <string name="forgot_password">I forgot my password</string>
+    <string name="no_account">Don’t have an account?</string>
+    <string name="goto_signup">Create an account</string>
+    <string name="signup">Sign Up</string>
+    <string name="welcome_sg">New Here? Create Your Account Now!</string>
+    <string name="have_account">Already have an account?</string>
+    <string name="goto_login">Log In</string>
+    <string name="help">Need Help?</string>
+    <string name="complete_profile">Please complete your profile</string>
     <string name="issue_message">Tap on the QR code icon to initiate the scanning process.</string>
     <string name="submit_message">First, click on the QR code icon to scan the QR, then start recording by selecting the video icon to complete the process.</string>
     <string name="search_page_message">Search your needs</string>
     <string name="history_page_message">It looks like you haven’t\nstarted reading yet!!!!!!!</string>
+    <string name="home_recent_message">Recent Issued Books</string>
+    <string name="home_recommended_message">Recommended Books</string>
+    <string name="home_trending_message">Trending Books</string>
+    <string name="notice_board_message">Notice Board</string>
+    <string name="scan_qr_message">Scan QR for details</string>
 </resources>

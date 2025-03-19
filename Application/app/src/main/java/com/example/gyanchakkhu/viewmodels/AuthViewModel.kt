@@ -10,7 +10,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import java.util.UUID
+import java.util.Calendar
+import kotlin.random.Random
 
 class AuthViewModel(
     private val booksViewModel: BooksViewModel
@@ -90,7 +91,9 @@ class AuthViewModel(
             name.isBlank() -> _authState.value = AuthState.Error("Name is required")
             email.isBlank() -> _authState.value = AuthState.Error("Email cannot be empty")
             password.isBlank() -> _authState.value = AuthState.Error("Password cannot be empty")
-            password != confirmPassword -> _authState.value = AuthState.Error("Passwords do not match")
+            password != confirmPassword -> _authState.value =
+                AuthState.Error("Passwords do not match")
+
             else -> {
                 _authState.value = AuthState.Loading
                 auth.createUserWithEmailAndPassword(email, password)
@@ -104,11 +107,13 @@ class AuthViewModel(
                                         _authState.value = AuthState.Authenticated
                                     }
                                     .addOnFailureListener { e ->
-                                        _authState.value = AuthState.Error(e.message ?: "Signup failed")
+                                        _authState.value =
+                                            AuthState.Error(e.message ?: "Signup failed")
                                     }
                             }
                         } else {
-                            _authState.value = AuthState.Error(task.exception?.message ?: "Signup failed")
+                            _authState.value =
+                                AuthState.Error(task.exception?.message ?: "Signup failed")
                         }
                     }
             }
@@ -151,31 +156,64 @@ class AuthViewModel(
             }
     }
 
+    fun removeLibrary() {
+        val userId = auth.currentUser?.uid ?: return
+        val user = _userData.value ?: return
+        val libraryUid = user.libraryUid ?: return
+        database.child("libraryList").child(libraryUid).child("libraryUserList").child(userId)
+            .removeValue()
+            .addOnSuccessListener {
+                database.child("userList").child(userId).updateChildren(
+                    mapOf("libraryUid" to null, "cardUid" to null)
+                ).addOnSuccessListener {
+                    _isEnrolledInLibrary.value = false
+                    _userData.value = user.copy(libraryUid = null, cardUid = null)
+                    _libraryName.value = "Not Found!"
+                    booksViewModel.clearBookList()
+                    booksViewModel.clearMyBookList()
+                    Log.d("FirebaseEnroll", "Library user removed successfully")
+                }.addOnFailureListener { e ->
+                    Log.e("FirebaseEnroll", "Could not update library user data: ${e.message}")
+                }
+            }
+            .addOnFailureListener {
+                Log.e("FirebaseEnroll", "Could not remove library user: ${it.message}")
+            }
+    }
+
     fun registerAsLibraryUser(libraryName: String, libraryUid: String) {
         val userId = auth.currentUser?.uid ?: return
         val user = _userData.value ?: return
-        val cardUid = generateUniqueCardId()
+        val cardUid = generateUniqueCardId(user.name ?: return, libraryUid)
 
         database.child("libraryList").child(libraryUid).child("name").get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.value == libraryName) {
-                    database.child("libraryList").child(libraryUid).child("libraryUserList").child(userId).setValue(true)
+                    database.child("libraryList").child(libraryUid).child("libraryUserList")
+                        .child(userId).setValue(true)
                         .addOnSuccessListener {
                             database.child("userList").child(userId).updateChildren(
                                 mapOf("libraryUid" to libraryUid, "cardUid" to cardUid)
                             ).addOnSuccessListener {
                                 _isEnrolledInLibrary.value = true
-                                _userData.value = user.copy(libraryUid = libraryUid, cardUid = cardUid)
+                                _userData.value =
+                                    user.copy(libraryUid = libraryUid, cardUid = cardUid)
                                 getLibraryName(libraryUid)
                                 booksViewModel.fetchBooks(libraryUid, database)
                                 booksViewModel.fetchMyBooks(userId, libraryUid, database)
                                 Log.d("FirebaseEnroll", "Library user registered successfully")
                             }.addOnFailureListener { e ->
-                                Log.e("FirebaseEnroll", "Could not update library user data: ${e.message}")
+                                Log.e(
+                                    "FirebaseEnroll",
+                                    "Could not update library user data: ${e.message}"
+                                )
                             }
                         }
                         .addOnFailureListener { e ->
-                            Log.e("FirebaseEnroll", "Could not register as library user: ${e.message}")
+                            Log.e(
+                                "FirebaseEnroll",
+                                "Could not register as library user: ${e.message}"
+                            )
                         }
                 } else {
                     _authState.value = AuthState.Error("Library name and ID do not match")
@@ -186,7 +224,30 @@ class AuthViewModel(
             }
     }
 
-    private fun generateUniqueCardId(): String = UUID.randomUUID().toString()
+    private fun generateUniqueCardId(username: String, libraryUid: String): String {
+        val calendar = Calendar.getInstance()
+        val currentYear = calendar.get(Calendar.YEAR).toString()
+        val currentMonth = "%02d".format(calendar.get(Calendar.MONTH) + 1)
+
+        val nameParts = username.split(" ")
+        val firstPart = nameParts.getOrNull(0)?.firstOrNull()?.uppercaseChar() ?: 'X'
+        val secondPart = nameParts.getOrNull(1)?.firstOrNull()?.uppercaseChar() ?: 'X'
+        val nameCode = "$firstPart$secondPart$currentMonth"
+
+        val libraryCode = libraryUid.substring(3, 6).uppercase()
+        val randomString = generateRandomString()
+
+        return "$currentYear-$nameCode-$libraryCode$randomString"
+    }
+
+    private fun generateRandomString(): String {
+        val letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val numbers = "0123456789"
+        val randomLetters = List(2) { letters.random() }
+        val randomNumbers = List(2) { numbers.random() }
+        val combinedList = (randomLetters + randomNumbers).shuffled()
+        return combinedList.joinToString("")
+    }
 }
 
 data class UserData(

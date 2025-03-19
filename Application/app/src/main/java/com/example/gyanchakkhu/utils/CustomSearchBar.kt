@@ -53,10 +53,10 @@ fun CustomSearchBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Filled.Search,
-                contentDescription = "Search",
-                tint = iconColor,
-                modifier = Modifier.padding(end = 8.dp)
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = "Search",
+                    tint = iconColor,
+                    modifier = Modifier.padding(end = 8.dp)
             )
             BasicTextField(
                 value = value,

@@ -60,17 +60,17 @@ fun AppNavigation(authViewModel: AuthViewModel, booksViewModel: BooksViewModel) 
                 SignupPage(navController, authViewModel)
             }
             composable(Routes.home_page) {
-                HomePage(navController, authViewModel)
+                HomePage(navController, authViewModel, booksViewModel)
             }
             composable(Routes.books_page) {
                 BooksPage(navController, authViewModel)
             }
-            composable(Routes.issue_page) {
-                IssuePage() //navController, authViewModel
-            }
-            composable(Routes.submit_page) {
-                SubmitPage()
-            }
+//            composable(Routes.issue_page) {
+//                IssuePage()
+//            }
+//            composable(Routes.submit_page) {
+//                SubmitPage()
+//            }
             composable(Routes.search_page) {
                 SearchPage(navController, authViewModel, booksViewModel)
             }

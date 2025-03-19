@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gyanchakkhu.R
@@ -43,12 +42,8 @@ fun DigitalLibraryCard(
     cardIssueNumber: String,
     libraryName: String,
     libraryUid: String,
-    showCard: Boolean,
-    message: String,
-    modifier: Modifier = Modifier
+    isUserEnrolledInLibrary: Boolean
 ) {
-    var show by remember { mutableStateOf(showCard) }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -61,7 +56,6 @@ fun DigitalLibraryCard(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,25 +102,22 @@ fun DigitalLibraryCard(
                     color = Color.Gray
                 )
             }
-
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(if (!show) Color.White else Color.Transparent),
+                    .background(if (!isUserEnrolledInLibrary) Color.White else Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
                 androidx.compose.animation.AnimatedVisibility(
-                    visible = !show,
+                    visible = !isUserEnrolledInLibrary,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    TextButton(onClick = { if(showCard) { show = true } else Unit }) {
-                        Text(
-                            text = message,
-                            color = Blue80,
-                            fontSize = 18.sp
-                        )
-                    }
+                    Text(
+                        text = "Please enroll in a library",
+                        color = Blue80,
+                        fontSize = 18.sp
+                    )
                 }
             }
         }
