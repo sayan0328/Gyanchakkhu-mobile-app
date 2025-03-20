@@ -2,6 +2,7 @@ package com.example.gyanchakkhu.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -118,7 +120,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 20.dp)
+                                .padding(horizontal = 16.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
                                 .padding(horizontal = 30.dp),
@@ -199,7 +201,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 20.dp)
+                                .padding(horizontal = 16.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
                                 .padding(horizontal = 30.dp),
@@ -213,58 +215,80 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(16.dp)
                             )
-                            Row {
-                                Column {
-                                    Text(text = "Library Name", fontWeight = FontWeight.Bold)
-                                    Text(text = "Library Unique ID", fontWeight = FontWeight.Bold)
-                                }
-                                Spacer(modifier = Modifier.width(20.dp))
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    if(isUserEnrolledInLibrary){
-                                            Text(
-                                                text = userLibName,
-                                                modifier = Modifier.align(Alignment.End)
-                                            )
+                            Column(
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+
+                                Row {
+                                    Column {
+                                        Text(text = "Library Name", fontWeight = FontWeight.Bold)
                                         Text(
-                                            text = userLibUid,
-                                            modifier = Modifier.align(Alignment.End)
-                                        )
-                                    }else{
-                                        CustomTextField(
-                                            text = libNameField,
-                                            onValueChange = {libNameField = it},
-                                            label = "Enter Library Name"
-                                        )
-                                        CustomTextField(
-                                            text = libUIDField,
-                                            onValueChange = {libUIDField = it},
-                                            label = "Enter Library UID"
+                                            text = "Library Unique ID",
+                                            fontWeight = FontWeight.Bold
                                         )
                                     }
+                                    Spacer(modifier = Modifier.width(20.dp))
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        if (isUserEnrolledInLibrary) {
+                                            Text(
+                                                text = userLibName,
+                                                modifier = Modifier
+                                                    .align(Alignment.End)
+                                                    .horizontalScroll(rememberScrollState()),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Clip
+                                            )
+                                            Text(
+                                                text = userLibUid,
+                                                modifier = Modifier
+                                                    .align(Alignment.End)
+                                                    .horizontalScroll(rememberScrollState()),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Clip
+                                            )
+                                        } else {
+                                            CustomTextField(
+                                                text = libNameField,
+                                                onValueChange = { libNameField = it },
+                                                label = "Enter Library Name"
+                                            )
+                                            CustomTextField(
+                                                text = libUIDField,
+                                                onValueChange = { libUIDField = it },
+                                                label = "Enter Library UID"
+                                            )
+                                        }
+                                    }
                                 }
-                            }
-                            Button(
-                                modifier = Modifier
-                                    .padding(20.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .height(36.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = if(isUserEnrolledInLibrary) MyRed80 else Blue40),
-                                onClick = {
-                                    if(isUserEnrolledInLibrary) {
-                                        authViewModel.removeLibrary()
-                                        libNameField = ""
-                                        libUIDField = ""
-                                    } else authViewModel.registerAsLibraryUser(libNameField, libUIDField)
+                                Button(
+                                    modifier = Modifier
+                                        .padding(20.dp)
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .height(36.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = if (isUserEnrolledInLibrary) MyRed80 else Blue40),
+                                    onClick = {
+                                        libNameField = libNameField.trim()
+                                        libUIDField = libUIDField.trim()
+                                        if (isUserEnrolledInLibrary) {
+                                            authViewModel.removeLibrary()
+                                            libNameField = ""
+                                            libUIDField = ""
+                                        } else authViewModel.registerAsLibraryUser(
+                                            libNameField,
+                                            libUIDField
+                                        )
+                                    }
+                                ) {
+                                    Text(
+                                        text = if (isUserEnrolledInLibrary) "Change Library" else "Submit",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                    )
                                 }
-                            ) {
-                                Text(
-                                    text = if(isUserEnrolledInLibrary) "Change Library" else "Submit",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                )
                             }
                         }
                         MyHorizontalDivider()
@@ -280,8 +304,8 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                             cardIssueNumber = userCardIssueNumber,
                             libraryName = userLibName,
                             libraryUid = userLibUid,
-                            isUserEnrolledInLibrary = isUserEnrolledInLibrary,)
-
+                            isUserEnrolledInLibrary = isUserEnrolledInLibrary,
+                        )
                         Button(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp)),

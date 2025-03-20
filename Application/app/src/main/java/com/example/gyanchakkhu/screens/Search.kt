@@ -161,9 +161,9 @@ fun SearchPage(
                             .fadingEdge(topFade)
                             .fillMaxWidth()
                             .weight(1f)
-                            .padding(horizontal = 24.dp)
+                            .padding(horizontal = 16.dp)
                     ) {
-                        if (isSearchBarEmpty) {
+                        if (books.isEmpty()) {
                             item {
                                 Column(
                                     modifier = Modifier
@@ -172,53 +172,30 @@ fun SearchPage(
                                 ) {
                                     Image(
                                         painter = painterResource(R.drawable.empty_booklist),
-                                        contentDescription = "Search Bar is Empty",
+                                        contentDescription = "No books found",
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(top = 40.dp, bottom = 16.dp)
                                     )
                                     Text(
-                                        text = stringResource(R.string.search_page_message),
+                                        text = "No books found", // Replace with your message
                                         color = Purple40,
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 }
                             }
-
                         } else {
-                            if (books.isEmpty()) {
-                                item {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Image(
-                                            painter = painterResource(R.drawable.empty_booklist),
-                                            contentDescription = "No books found",
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 40.dp, bottom = 16.dp)
-                                        )
-                                        Text(
-                                            text = "No books found", // Replace with your message
-                                            color = Purple40,
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
-                                    }
-                                }
-                            } else {
-                                items(books) { book ->
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    BookDetailsInSearch(
-                                        bookName = book.bookName,
-                                        bookId = book.bookId,
-                                        librarySection = book.libSection,
-                                        rackNo = book.rackNo
-                                    )
-                                }
+                            items(books) { book ->
+                                Spacer(modifier = Modifier.height(24.dp))
+                                BookDetailsInSearch(
+                                    bookName = book.bookName,
+                                    bookId = book.bookId,
+                                    librarySection = book.libSection,
+                                    rackNo = book.rackNo
+                                )
                             }
                         }
+
                         item {
                             Spacer(modifier = Modifier.height(160.dp))
                         }

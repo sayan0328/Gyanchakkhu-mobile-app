@@ -1,25 +1,26 @@
 package com.example.gyanchakkhu.utils
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gyanchakkhu.screens.BooksPage
+import com.example.gyanchakkhu.screens.HistoryPage
 import com.example.gyanchakkhu.screens.HomePage
-import com.example.gyanchakkhu.screens.IssuePage
 import com.example.gyanchakkhu.screens.LoginPage
 import com.example.gyanchakkhu.screens.ProfilePage
-import com.example.gyanchakkhu.screens.HistoryPage
 import com.example.gyanchakkhu.screens.SearchPage
 import com.example.gyanchakkhu.screens.SignupPage
-import com.example.gyanchakkhu.screens.SubmitPage
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
 import com.example.gyanchakkhu.viewmodels.BooksViewModel
 
@@ -31,19 +32,21 @@ fun AppNavigation(authViewModel: AuthViewModel, booksViewModel: BooksViewModel) 
     Scaffold(
         floatingActionButton = {
             if (navBackStackEntry?.destination?.route in listOfNavItems.map { it.route }) {
-                CustomNavigationBar(
-                    currentDestination = currentDestination,
-                    items = listOfNavItems,
-                    onItemClick = { item ->
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                Box(modifier = Modifier.offset(y = 16.dp)) {
+                    CustomNavigationBar(
+                        currentDestination = currentDestination,
+                        items = listOfNavItems,
+                        onItemClick = { item ->
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
-                    }
-                )
+                    )
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.Center

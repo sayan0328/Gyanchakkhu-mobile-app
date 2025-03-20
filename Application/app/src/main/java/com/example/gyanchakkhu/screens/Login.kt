@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -46,12 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
-import com.example.gyanchakkhu.ui.theme.Blue120
-import com.example.gyanchakkhu.ui.theme.Blue160
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.utils.Routes
-import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
 
@@ -68,7 +67,13 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
             is AuthState.Authenticated -> {
                 navController.navigate(Routes.home_page)
             }
-            is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+
+            is AuthState.Error -> Toast.makeText(
+                context,
+                (authState.value as AuthState.Error).message,
+                Toast.LENGTH_SHORT
+            ).show()
+
             else -> Unit
         }
     }
@@ -135,7 +140,10 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp, horizontal = 20.dp),
-                            singleLine = true
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            )
                         )
 
                         OutlinedTextField(
@@ -158,7 +166,10 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
                                     }
                                 )
 
-                            }
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            )
                         )
                         Text(
                             text = stringResource(id = R.string.forgot_password),
@@ -175,7 +186,11 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
                                 .clickable { /*TODO*/ }
                         )
                         Button(
-                            onClick = { authViewModel.login(email, password) },
+                            onClick = {
+                                email = email.trim()
+                                password = password.trim()
+                                authViewModel.login(email, password)
+                            },
                             enabled = authState.value != AuthState.Loading,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -198,7 +213,10 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
                         Text(
                             text = stringResource(id = R.string.goto_signup),
                             modifier = Modifier
-                                .clickable { navController.navigate(Routes.signup_page) },
+                                .clickable {
+                                    authViewModel.unAuthenticateUser()
+                                    navController.navigate(Routes.signup_page)
+                                },
                             style = TextStyle(
                                 color = Blue80,
                                 fontWeight = FontWeight.ExtraBold

@@ -1,5 +1,10 @@
 package com.example.gyanchakkhu.viewmodels
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,11 +15,13 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.Calendar
-import kotlin.random.Random
 
 class AuthViewModel(
-    private val booksViewModel: BooksViewModel
+    private val booksViewModel: BooksViewModel,
+    context: Context
 ) : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -32,7 +39,26 @@ class AuthViewModel(
     private val _libraryName = MutableLiveData<String>("Not Found!")
     val libraryName: LiveData<String> = _libraryName
 
+    private val _isConnected = MutableStateFlow(false)
+    val isConnected = _isConnected.asStateFlow()
+
+    private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            _isConnected.value = true
+        }
+        override fun onLost(network: Network) {
+            _isConnected.value = false
+        }
+    }
+
     init {
+        val networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+        _isConnected.value = isInternetAvailable()
         checkAuthStatus()
     }
 
@@ -91,8 +117,8 @@ class AuthViewModel(
             name.isBlank() -> _authState.value = AuthState.Error("Name is required")
             email.isBlank() -> _authState.value = AuthState.Error("Email cannot be empty")
             password.isBlank() -> _authState.value = AuthState.Error("Password cannot be empty")
-            password != confirmPassword -> _authState.value =
-                AuthState.Error("Passwords do not match")
+            password.contains(" ") -> _authState.value = AuthState.Error("Password cannot contain spaces")
+            password != confirmPassword -> _authState.value = AuthState.Error("Passwords do not match")
 
             else -> {
                 _authState.value = AuthState.Loading
@@ -130,6 +156,10 @@ class AuthViewModel(
         booksViewModel.clearMyBookList()
     }
 
+    fun unAuthenticateUser(){
+        _authState.value = AuthState.Unauthenticated
+    }
+
     private fun fetchUserData(userId: String, onComplete: (UserData) -> Unit = {}) {
         database.child("userList").child(userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -160,8 +190,7 @@ class AuthViewModel(
         val userId = auth.currentUser?.uid ?: return
         val user = _userData.value ?: return
         val libraryUid = user.libraryUid ?: return
-        database.child("libraryList").child(libraryUid).child("libraryUserList").child(userId)
-            .removeValue()
+        database.child("libraryList").child(libraryUid).child("libraryUserList").child(userId).removeValue()
             .addOnSuccessListener {
                 database.child("userList").child(userId).updateChildren(
                     mapOf("libraryUid" to null, "cardUid" to null)
@@ -224,6 +253,19 @@ class AuthViewModel(
             }
     }
 
+    fun issueUserBook(book: Book, onSuccess: () -> Unit){
+        val userId = auth.currentUser?.uid ?: return
+        val user = _userData.value ?: return
+        val libraryUid = user.libraryUid ?: return
+        booksViewModel.issueBook(book, userId, libraryUid, database, onSuccess)
+    }
+
+    private fun isInternetAvailable(): Boolean {
+        val network = connectivityManager.activeNetwork ?: return false
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
     private fun generateUniqueCardId(username: String, libraryUid: String): String {
         val calendar = Calendar.getInstance()
         val currentYear = calendar.get(Calendar.YEAR).toString()
@@ -247,6 +289,11 @@ class AuthViewModel(
         val randomNumbers = List(2) { numbers.random() }
         val combinedList = (randomLetters + randomNumbers).shuffled()
         return combinedList.joinToString("")
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        connectivityManager.unregisterNetworkCallback(networkCallback)
     }
 }
 

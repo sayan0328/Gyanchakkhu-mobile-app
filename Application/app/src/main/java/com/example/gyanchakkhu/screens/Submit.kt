@@ -15,9 +15,11 @@ import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.utils.BookDetailsInIssueAndSubmit
 import com.example.gyanchakkhu.utils.OneTimePopup
 import com.example.gyanchakkhu.utils.SharedPrefs
+import com.example.gyanchakkhu.viewmodels.AuthViewModel
 
 @Composable
 fun SubmitPage(
+    authViewModel: AuthViewModel,
     bookData: List<String>,
     onClick: () -> Unit,
     isVisible: Boolean
@@ -43,6 +45,9 @@ fun SubmitPage(
         bookId = bookData[1],
         librarySection = bookData[2],
         rackNo = bookData[3],
+        onClick = {
+            // TODO: onSubmit()
+        },
         isVisible = isVisible
     )
 }

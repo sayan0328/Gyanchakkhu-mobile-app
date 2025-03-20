@@ -4,6 +4,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,17 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
@@ -50,11 +47,18 @@ fun BookDetailsInIssueAndSubmit(
     bookId: String = "",
     librarySection: String = "",
     rackNo: String = "",
+    onClick: () -> Unit,
     isVisible: Boolean = false
 ) {
+    val bookDetails = listOf(
+        "Book Name" to bookName,
+        "Book ID" to bookId,
+        "Library Section" to librarySection,
+        "Rack No." to rackNo
+    )
     Column(
         modifier = modifier
-            .padding(24.dp)
+            .padding(16.dp)
             .clip(RoundedCornerShape(20.dp))
             .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
             .background(Color.White)
@@ -62,7 +66,7 @@ fun BookDetailsInIssueAndSubmit(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if(isVisible){
+        if (isVisible) {
             Text(
                 text = "Book Details",
                 modifier = Modifier.padding(top = 16.dp),
@@ -83,85 +87,28 @@ fun BookDetailsInIssueAndSubmit(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                ) {
-                    Text(
-                        text = "Book Name",
-                        color = MyPurple40,
-                        modifier = Modifier.weight(2f)
-                    )
-                    Text(
-                        text = bookName,
+                bookDetails.forEach { (label, value) ->
+                    Row(
                         modifier = Modifier
-                            .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp)
-                            .weight(3f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                ) {
-                    Text(
-                        text = "Book ID",
-                        color = MyPurple40,
-                        modifier = Modifier.weight(2f)
-                    )
-                    Text(
-                        text = bookId,
-                        modifier = Modifier
-                            .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp)
-                            .weight(3f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                ) {
-                    Text(
-                        text = "Library Section",
-                        color = MyPurple40,
-                        modifier = Modifier.weight(2f)
-                    )
-                    Text(
-                        text = librarySection,
-                        modifier = Modifier
-                            .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp)
-                            .weight(3f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                ) {
-                    Text(
-                        text = "Rack No.",
-                        color = MyPurple40,
-                        modifier = Modifier.weight(2f)
-                    )
-                    Text(
-                        text = rackNo,
-                        modifier = Modifier
-                            .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp)
-                            .weight(3f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                    ) {
+                        Text(
+                            text = label,
+                            color = MyPurple40,
+                            modifier = Modifier.weight(2f)
+                        )
+                        Text(
+                            text = value,
+                            modifier = Modifier
+                                .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
+                                .padding(horizontal = 12.dp)
+                                .horizontalScroll(rememberScrollState())
+                                .weight(3f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Clip
+                        )
+                    }
                 }
                 Button(
                     modifier = Modifier
@@ -170,7 +117,7 @@ fun BookDetailsInIssueAndSubmit(
                     colors = ButtonDefaults.buttonColors(containerColor = Blue40),
                     contentPadding = PaddingValues(horizontal = 44.dp, vertical = 1.dp),
                     onClick = {
-                        /*TODO*/
+                        onClick()
                     }
                 ) {
                     Text(
@@ -200,10 +147,12 @@ fun BookDetailsInIssueAndSubmit(
 
                 }
             }
-            if(!isVisible){
+            if (!isVisible) {
                 Text(
                     text = "Book Details",
-                    modifier = Modifier.padding(top = 16.dp).align(Alignment.TopCenter),
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .align(Alignment.TopCenter),
                     color = Purple20,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -357,8 +306,10 @@ fun BookDetailsInHistory(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        Spacer(modifier = Modifier
-            .height(20.dp))
+        Spacer(
+            modifier = Modifier
+                .height(20.dp)
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -435,9 +386,10 @@ fun RecentIssuesInHome(
                     .clip(RoundedCornerShape(12.dp))
                     .background(MyPurple120)
                     .padding(horizontal = 12.dp)
-                    .weight(2f),
+                    .weight(2f)
+                    .horizontalScroll(rememberScrollState()),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Clip
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -536,16 +488,42 @@ fun BookDetailsInHome(
                     .clip(RoundedCornerShape(12.dp))
                     .background(MyPurple120)
                     .padding(horizontal = 12.dp)
-                    .weight(2f),
+                    .weight(2f)
+                    .horizontalScroll(rememberScrollState()),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Clip
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = bookDesc,
             color = MyPurple80,
-            fontSize = 14.sp
+            fontSize = 14.sp,
+            maxLines = 4,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun EmptyCardInHome(
+    message: String = ""
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = message,
+            color = MyPurple80,
+            fontSize = 18.sp,
+            modifier = Modifier.padding(vertical = 32.dp)
         )
     }
 }

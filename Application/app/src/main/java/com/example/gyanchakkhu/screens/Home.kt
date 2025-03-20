@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +42,7 @@ import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.MyPurple80
 import com.example.gyanchakkhu.utils.BookDetailsInHome
+import com.example.gyanchakkhu.utils.EmptyCardInHome
 import com.example.gyanchakkhu.utils.MyHorizontalDivider
 import com.example.gyanchakkhu.utils.RecentIssuesInHome
 import com.example.gyanchakkhu.utils.Routes
@@ -53,8 +53,13 @@ import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
-fun HomePage(navController: NavController, authViewModel: AuthViewModel, booksViewModel: BooksViewModel) {
+fun HomePage(
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    booksViewModel: BooksViewModel
+) {
     val authState = authViewModel.authState.observeAsState()
+    val isConnected by authViewModel.isConnected.collectAsState()
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val userData by authViewModel.userData.observeAsState()
     val libName by authViewModel.libraryName.observeAsState()
@@ -63,7 +68,8 @@ fun HomePage(navController: NavController, authViewModel: AuthViewModel, booksVi
     val myBooks by booksViewModel.myBooks.collectAsState()
     val recentlyIssuedBooks = myBooks.take(3)
     val libBooks by booksViewModel.books.collectAsState()
-    val libraryBooks = libBooks.take(3)
+    val recommendedBooks = libBooks.asSequence().shuffled().take(3).toList()
+    val trendingBooks = libBooks.asSequence().shuffled().take(3).toList()
     var showNoticeBoard by remember { mutableStateOf(false) }
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -100,23 +106,40 @@ fun HomePage(navController: NavController, authViewModel: AuthViewModel, booksVi
                 )
             }
             LazyColumn(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             ) {
                 item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(30.dp))
-                        Image(
-                            painter = painterResource(id = R.drawable.bg_home),
-                            contentDescription = "Login/SignUp Bg",
-                            modifier = Modifier.fillMaxWidth(),
-                            contentScale = ContentScale.FillWidth
-                        )
-                        Spacer(modifier = Modifier.height(30.dp))
-                        if (!isUserEnrolledInLibrary) {
+                    Image(
+                        painter = painterResource(id = R.drawable.bg_home),
+                        contentDescription = "Login/SignUp Bg",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(30.dp),
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+                item {
+                    if (!isConnected) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.bg_no_internet),
+                                contentDescription = "Network Error",
+                                contentScale = ContentScale.FillWidth
+                            )
+                            Text(
+                                text = stringResource(R.string.network_error_message)
+                            )
+                        }
+                    } else if (!isUserEnrolledInLibrary) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -147,110 +170,137 @@ fun HomePage(navController: NavController, authViewModel: AuthViewModel, booksVi
                                 )
                             }
                             Spacer(modifier = Modifier.height(30.dp))
-                        } else {
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 36.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.Start,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = userLibName,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 24.sp
+                                    )
+                                    Text(
+                                        text = cardUid
+                                    )
+                                }
+                                Image(
+                                    painter = painterResource(R.drawable.home_notice),
+                                    contentDescription = "Home Notice Board",
+                                    Modifier.clickable { showNoticeBoard = true }
+                                )
+                            }
+                            MyHorizontalDivider()
+                            Text(
+                                text = stringResource(R.string.home_recent_message),
+                                color = MyPurple80,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 20.sp
+                            )
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 18.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 36.dp),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(
-                                        modifier = Modifier.weight(1f),
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Text(
-                                            text = userLibName,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 24.sp
-                                        )
-                                        Text(
-                                            text = cardUid
-                                        )
-                                    }
-                                    Image(
-                                        painter = painterResource(R.drawable.home_notice),
-                                        contentDescription = "Home Notice Board",
-                                        Modifier.clickable { showNoticeBoard = true }
+                                if (myBooks.isEmpty()) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    EmptyCardInHome(
+                                        message = stringResource(R.string.empty_issue_message)
                                     )
-                                }
-                                MyHorizontalDivider()
-                                Text(
-                                    text = stringResource(R.string.home_recent_message),
-                                    color = MyPurple80,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 20.sp
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    recentlyIssuedBooks.forEach {book ->
+                                } else {
+                                    recentlyIssuedBooks.forEach { book ->
                                         Spacer(modifier = Modifier.height(16.dp))
                                         RecentIssuesInHome(
                                             bookName = book.bookName,
                                             bookId = book.bookId,
-                                            issueDate = "12/02/24",
-                                            submitDate = "15/03/24"
+                                            issueDate = book.issueDate,
+                                            submitDate = book.submitDate
                                         )
                                     }
                                 }
-                                MyHorizontalDivider()
-                                Text(
-                                    text = stringResource(R.string.home_recommended_message),
-                                    color = MyPurple80,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 20.sp
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    libraryBooks.forEach {book ->
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        BookDetailsInHome(
-                                            bookName = book.bookName,
-                                            bookDesc = "Blah Blah Blah"
-                                        )
-                                    }
-                                }
-                                MyHorizontalDivider()
-                                Text(
-                                    text = stringResource(R.string.home_trending_message),
-                                    color = MyPurple80,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 20.sp
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    libraryBooks.forEach {book ->
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        BookDetailsInHome(
-                                            bookName = book.bookName,
-                                            bookDesc = "Blah Blah Blah"
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(160.dp))
                             }
+                            MyHorizontalDivider()
+                            Text(
+                                text = stringResource(R.string.home_recommended_message),
+                                color = MyPurple80,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 20.sp
+                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 18.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                if (myBooks.isEmpty()) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    EmptyCardInHome(
+                                        message = stringResource(R.string.empty_recommended_message)
+                                    )
+                                } else {
+                                    recommendedBooks.forEach { book ->
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        BookDetailsInHome(
+                                            bookName = book.bookName,
+                                            bookDesc = book.bookDesc
+                                        )
+                                    }
+                                }
+                            }
+                            MyHorizontalDivider()
+                            Text(
+                                text = stringResource(R.string.home_trending_message),
+                                color = MyPurple80,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 20.sp
+                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 0.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                if (libBooks.isEmpty()) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    EmptyCardInHome(
+                                        message = stringResource(R.string.empty_trending_message)
+                                    )
+                                } else {
+                                    trendingBooks.forEach { book ->
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        BookDetailsInHome(
+                                            bookName = book.bookName,
+                                            bookDesc = book.bookDesc
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(160.dp))
                         }
                     }
                 }
             }
-            if(showNoticeBoard){
-                NoticeBoard { showNoticeBoard = false }
-            }
+        }
+        if (showNoticeBoard) {
+            NoticeBoard { showNoticeBoard = false }
         }
     }
 }
