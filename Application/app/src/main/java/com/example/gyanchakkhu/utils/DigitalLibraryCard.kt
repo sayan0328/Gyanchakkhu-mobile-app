@@ -47,7 +47,7 @@ fun DigitalLibraryCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp)
+            .padding(16.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(Color.White.copy(alpha = 0.6f))
             .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
@@ -59,7 +59,7 @@ fun DigitalLibraryCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp, horizontal = 30.dp),
+                    .padding(vertical = 20.dp, horizontal = 24.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {

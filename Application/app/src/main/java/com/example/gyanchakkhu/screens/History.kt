@@ -165,7 +165,7 @@ fun HistoryPage(
                             .fadingEdge(topFade)
                             .fillMaxWidth()
                             .weight(1f)
-                            .padding(horizontal = 24.dp)
+                            .padding(horizontal = 16.dp)
                     ) {
                         if (myBooks.isEmpty()) {
                             item {
@@ -198,8 +198,8 @@ fun HistoryPage(
                                 BookDetailsInHistory(
                                     bookName = book.bookName,
                                     bookId = book.bookId,
-                                    issueDate = "12/02/24",
-                                    submitDate = "15/03/24"
+                                    issueDate = book.issueDate,
+                                    submitDate = book.submitDate
                                 )
                             }
                         }

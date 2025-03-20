@@ -13,11 +13,14 @@
     <string name="complete_profile">Please complete your profile</string>
     <string name="issue_message">Tap on the QR code icon to initiate the scanning process.</string>
     <string name="submit_message">First, click on the QR code icon to scan the QR, then start recording by selecting the video icon to complete the process.</string>
-    <string name="search_page_message">Search your needs</string>
     <string name="history_page_message">It looks like you haven’t\nstarted reading yet!!!!!!!</string>
     <string name="home_recent_message">Recent Issued Books</string>
     <string name="home_recommended_message">Recommended Books</string>
     <string name="home_trending_message">Trending Books</string>
     <string name="notice_board_message">Notice Board</string>
     <string name="scan_qr_message">Scan QR for details</string>
+    <string name="empty_issue_message">No Books Are Issued</string>
+    <string name="empty_recommended_message">Issue Some Books First</string>
+    <string name="empty_trending_message">Looks Like the Library Is Empty</string>
+    <string name="network_error_message">Network Error\nCan’t connect to Server</string>
 </resources>

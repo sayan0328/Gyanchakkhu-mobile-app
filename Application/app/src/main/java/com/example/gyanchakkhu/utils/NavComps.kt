@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -45,23 +45,30 @@ fun CustomNavigationBar(
     items: List<NavItems>,
     onItemClick: (NavItems) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(131.dp)
-            .padding(16.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.White)
-            .border(3.dp, color = Blue80, RoundedCornerShape(24.dp)),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+
+    val bottomFade = Brush.verticalGradient(0f to Color.Transparent, 0.2f to Color.White)
+    Box(
+        modifier = Modifier.fillMaxWidth().background(bottomFade),
+        contentAlignment = Alignment.Center,
     ) {
-        items.forEach { item ->
-            CustomNavigationBarItem(
-                item = item,
-                isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
-                onItemClick = { onItemClick(item) }
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(131.dp)
+                .padding(16.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White)
+                .border(3.dp, color = Blue80, RoundedCornerShape(24.dp)),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { item ->
+                CustomNavigationBarItem(
+                    item = item,
+                    isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                    onItemClick = { onItemClick(item) }
+                )
+            }
         }
     }
 }
@@ -70,7 +77,8 @@ fun CustomNavigationBar(
 fun CustomNavigationBarItem(
     item: NavItems,
     isSelected: Boolean,
-    onItemClick: () -> Unit) {
+    onItemClick: () -> Unit
+) {
     val size by animateDpAsState(
         targetValue = if (isSelected) 60.dp else 30.dp,
         animationSpec = tween(durationMillis = 500)
@@ -85,7 +93,7 @@ fun CustomNavigationBarItem(
     )
     val iconTint by animateColorAsState(
         targetValue = if (isSelected) Color.White else Gray,
-        animationSpec= tween(durationMillis = 500)
+        animationSpec = tween(durationMillis = 500)
     )
 
     Column(

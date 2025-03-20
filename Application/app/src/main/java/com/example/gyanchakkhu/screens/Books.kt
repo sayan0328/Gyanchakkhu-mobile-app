@@ -241,8 +241,8 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             }
                         }
                         when (isIssueSelected) {
-                            true -> IssuePage(issueBookData, onClick = { isCameraOn = true }, isIssueDataVisible)
-                            false -> SubmitPage(submitBookData, onClick = { isCameraOn = true }, isSubmitDataVisible)
+                            true -> IssuePage(authViewModel, issueBookData, onClick = { isCameraOn = true }, isIssueDataVisible)
+                            false -> SubmitPage(authViewModel, submitBookData, onClick = { isCameraOn = true }, isSubmitDataVisible)
                         }
                         Spacer(modifier = Modifier.height(160.dp))
                     }

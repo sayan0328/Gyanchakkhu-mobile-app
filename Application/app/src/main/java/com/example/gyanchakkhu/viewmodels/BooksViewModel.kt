@@ -1,27 +1,26 @@
 package com.example.gyanchakkhu.viewmodels
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(FlowPreview::class)
 class BooksViewModel: ViewModel(){
@@ -114,9 +113,10 @@ class BooksViewModel: ViewModel(){
                     for(bookSnapshot in snapshot.children) {
                         val bookId = bookSnapshot.key ?: continue
                         val bookName = bookSnapshot.child("name").getValue(String::class.java) ?: "Not Found!!"
+                        val bookDesc = bookSnapshot.child("description").getValue(String::class.java) ?: "Not Found!!"
                         val libSection = bookSnapshot.child("librarySection").getValue(String::class.java) ?: "Not Found!!"
                         val rackNo = bookSnapshot.child("rackNo").getValue(String::class.java) ?: "Not Found!!"
-                        bookList.add(Book(bookName, bookId, libSection, rackNo))
+                        bookList.add(Book(bookName, bookDesc, bookId, libSection, rackNo))
                     }
                     _books.value = bookList
                 }
@@ -129,7 +129,7 @@ class BooksViewModel: ViewModel(){
 
     fun fetchMyBooks(userId: String, libraryUid: String, database: DatabaseReference) {
         viewModelScope.launch {
-            database.child("userList").child(userId).child("myBooks")
+            database.child("userList").child(userId).child("myBooks").child(libraryUid)
                 .addListenerForSingleValueEvent(object: ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val myBooksList = mutableListOf<MyBook>()
@@ -181,6 +181,35 @@ class BooksViewModel: ViewModel(){
             })
     }
 
+    fun issueBook(book: Book, userId: String, libraryUid: String, database: DatabaseReference, onSuccess: () -> Unit) {
+        val (issueDate, submitDate) = getIssueAndSubmitDate()
+        database.child("userList").child(userId).child("myBooks").child(libraryUid).child(book.bookId).updateChildren(
+            mapOf(
+                "issueDate" to issueDate,
+                "submitDate" to submitDate
+            )
+        )
+            .addOnSuccessListener {
+                database.child("libraryList").child(libraryUid).child("libraryUserList").child(userId).child(book.bookId).updateChildren(
+                    mapOf(
+                        "issueDate" to issueDate,
+                        "submitDate" to submitDate
+                    )
+                )
+                    .addOnSuccessListener {
+                        fetchMyBooks(userId, libraryUid, database)
+                        onSuccess()
+                        Log.d("Issue Book", "Book issued successfully")
+                    }
+                    .addOnFailureListener {
+                        Log.e("Issue Book", "Error issuing book: ${it.message}")
+                    }
+            }
+            .addOnFailureListener {
+                Log.e("Issue Book", "Error issuing book: ${it.message}")
+            }
+    }
+
     fun clearBookList() {
         _books.value = emptyList()
     }
@@ -188,10 +217,24 @@ class BooksViewModel: ViewModel(){
     fun clearMyBookList() {
         _myBooks.value = emptyList()
     }
+
+    private fun getIssueAndSubmitDate(): Pair<String, String> {
+        val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+
+        val issueCalendar = Calendar.getInstance()
+        val issueDate = dateFormat.format(issueCalendar.time)
+
+        val submitCalendar = Calendar.getInstance()
+        submitCalendar.add(Calendar.DAY_OF_YEAR, 7)
+        val submitDate = dateFormat.format(submitCalendar.time)
+
+        return Pair(issueDate, submitDate)
+    }
 }
 
 data class Book(
     val bookName: String,
+    val bookDesc: String = "",
     val bookId: String,
     val libSection: String,
     val rackNo: String
