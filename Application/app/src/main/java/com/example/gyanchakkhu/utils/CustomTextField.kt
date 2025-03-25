@@ -17,11 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 
 @Composable
-fun CustomTextField(modifier: Modifier = Modifier, text: String, onValueChange: (String) -> Unit, label: String) {
+fun CustomTextField(text: String, onValueChange: (String) -> Unit, label: String) {
     var isFocused by remember { mutableStateOf(false) }
 
     BasicTextField(
@@ -31,6 +33,7 @@ fun CustomTextField(modifier: Modifier = Modifier, text: String, onValueChange: 
         modifier = Modifier
             .fillMaxWidth()
             .onFocusChanged { isFocused = it.isFocused },
+        textStyle = TextStyle(fontFamily = poppinsFontFamily,),
         decorationBox = { innerTextField ->
             Box(
                 modifier = Modifier
@@ -41,7 +44,8 @@ fun CustomTextField(modifier: Modifier = Modifier, text: String, onValueChange: 
                 if (text.isEmpty()) {
                     Text(
                         text = label,
-                        color = Color.Gray
+                        color = Color.Gray,
+                        fontFamily = poppinsFontFamily
                     )
                 }
                 innerTextField()

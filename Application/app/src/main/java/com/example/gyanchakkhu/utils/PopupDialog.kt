@@ -1,20 +1,17 @@
 package com.example.gyanchakkhu.utils
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
 
 @Composable
-fun OneTimePopup(
+fun PopupDialog(
     titleText: String = "Welcome!",
-    bodyText: String = "This is a one-time popup message.",
+    bodyText: String = "",
     onDismiss: () -> Unit
 ) {
     AlertDialog(

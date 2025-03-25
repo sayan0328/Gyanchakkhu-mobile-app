@@ -24,8 +24,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 
 @Composable
 fun CustomSearchBar(
@@ -61,7 +63,11 @@ fun CustomSearchBar(
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                textStyle = LocalTextStyle.current.copy(color = textColor, fontSize = 16.sp),
+                textStyle = LocalTextStyle.current.copy(
+                    color = textColor,
+                    fontSize = 16.sp,
+                    fontFamily = poppinsFontFamily
+                ),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Search
@@ -76,7 +82,10 @@ fun CustomSearchBar(
                     Text(
                         text = placeholderText,
                         color = placeholderColor,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        fontFamily = poppinsFontFamily,
+                        modifier = Modifier.padding(end = 36.dp),
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 innerTextField()

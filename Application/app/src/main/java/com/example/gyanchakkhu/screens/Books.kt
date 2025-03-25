@@ -1,11 +1,9 @@
 package com.example.gyanchakkhu.screens
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,7 +19,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -30,6 +30,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -54,13 +56,16 @@ import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
+import com.example.gyanchakkhu.ui.theme.MyPurple100
 import com.example.gyanchakkhu.ui.theme.MyPurple120
+import com.example.gyanchakkhu.utils.CheckLocationDialog
 import com.example.gyanchakkhu.utils.QRCodeScannerScreen
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
-import com.example.gyanchakkhu.utils.parseQRCodeData
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.example.gyanchakkhu.viewmodels.Book
+import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -70,16 +75,22 @@ import com.google.android.gms.location.Priority
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
-fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
+fun BooksPage(
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    booksViewModel: BooksViewModel
+) {
     val context = LocalContext.current
+    val books by booksViewModel.books.collectAsState(emptyList())
     var isIssueDataVisible by remember { mutableStateOf(false) }
-    var issueBookData by remember { mutableStateOf(listOf<String>("","","","")) }
+    var issueBookData by remember { mutableStateOf("B200001") }
     var isSubmitDataVisible by remember { mutableStateOf(false) }
-    var submitBookData by remember { mutableStateOf(listOf<String>("","","","")) }
+    var submitBookData by remember { mutableStateOf("") }
 
     val authState = authViewModel.authState.observeAsState()
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     var isIssueSelected by remember { mutableStateOf(true) }
+    var showLocationDialog by remember { mutableStateOf(false) }
     var isCameraOn by remember { mutableStateOf(false) }
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -99,7 +110,7 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
 
     val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var location by remember { mutableStateOf<Location?>(null) }
-
+    var isGranted by remember { mutableStateOf(true) }
     val permissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -111,17 +122,24 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
     ) { permissionsResult ->
         val allGranted = permissionsResult.all { it.value }
         if (allGranted) {
+            isGranted = true
             Toast.makeText(context, "All permissions granted!", Toast.LENGTH_SHORT).show()
             requestLocationUpdates(context, locationClient) { newLocation ->
                 location = newLocation
             }
         } else {
+            isGranted = false
             Toast.makeText(context, "Some permissions were denied!", Toast.LENGTH_SHORT).show()
         }
     }
 
     LaunchedEffect(Unit) {
-        if (permissions.any { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }) {
+        if (permissions.any {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    it
+                ) != PackageManager.PERMISSION_GRANTED
+            }) {
             permissionLauncher.launch(permissions)
         } else {
             requestLocationUpdates(context, locationClient) { newLocation ->
@@ -138,6 +156,22 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                 .fillMaxSize()
                 .background(gradient)
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.book),
+                contentDescription = "Book",
+                modifier = Modifier
+                    .size(160.dp)
+                    .offset(x = 300.dp, y = 180.dp)
+                    .rotate(-45f)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.book),
+                contentDescription = "Book",
+                modifier = Modifier
+                    .size(240.dp)
+                    .offset(x = (-100).dp, y = 480.dp)
+                    .rotate(45f)
+            )
             if (!isUserEnrolledInLibrary) {
                 Image(
                     painter = painterResource(id = R.drawable.bg_idle),
@@ -152,11 +186,11 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                 item {
 
                     //LOCATION SERVICE START
-                    if (location != null) {
-                        Text("Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
-                    } else {
-                        Text("Location not available")
-                    }
+//                    if (location != null) {
+//                        Text("Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
+//                    } else {
+//                        Text("Location not available")
+//                    }
                     //LOCATION SERVICE END
 
                     Column(
@@ -164,14 +198,14 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(30.dp))
                         Image(
                             painter = painterResource(id = R.drawable.bg_home),
                             contentDescription = "Login/SignUp Bg",
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(30.dp),
                             contentScale = ContentScale.FillWidth
                         )
-                        Spacer(modifier = Modifier.height(30.dp))
                         if (!isUserEnrolledInLibrary) {
                             Row(
                                 modifier = Modifier
@@ -218,7 +252,7 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             ) {
                                 Text(
                                     text = "Issue",
-                                    color = if (!isIssueSelected) Blue40 else Color.White,
+                                    color = if (!isIssueSelected) MyPurple100 else Color.White,
                                     fontSize = 16.sp
                                 )
                             }
@@ -235,20 +269,61 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             ) {
                                 Text(
                                     text = "Submit",
-                                    color = if (isIssueSelected) Blue40 else Color.White,
+                                    color = if (isIssueSelected) MyPurple100 else Color.White,
                                     fontSize = 16.sp
                                 )
                             }
                         }
                         when (isIssueSelected) {
-                            true -> IssuePage(authViewModel, issueBookData, onClick = { isCameraOn = true }, isIssueDataVisible)
-                            false -> SubmitPage(authViewModel, submitBookData, onClick = { isCameraOn = true }, isSubmitDataVisible)
+                            true -> IssuePage(
+                                authViewModel,
+                                books.find { it.bookId == issueBookData } ?: Book(),
+                                onClick = {
+                                    if (isGranted) showLocationDialog = true
+                                    else Toast.makeText(
+                                        context,
+                                        "Please allow all permissions!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                clearData = {
+                                    isIssueDataVisible = false
+                                    issueBookData = ""
+                                },
+                                isIssueDataVisible
+                            )
+
+                            false -> SubmitPage(
+                                authViewModel,
+                                books.find { it.bookId == submitBookData } ?: Book(),
+                                onQrClick = {
+                                    if (isGranted) showLocationDialog = true
+                                    else Toast.makeText(
+                                        context,
+                                        "Please allow all permissions!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onBookClick = { isCameraOn = true },
+                                clearData = {
+                                    isSubmitDataVisible = false
+                                    submitBookData = ""
+                                },
+                                closeCamera = {
+                                    isCameraOn = false
+                                },
+                                isSubmitDataVisible
+                            )
                         }
                         Spacer(modifier = Modifier.height(160.dp))
                     }
                 }
             }
-            if(isCameraOn){
+            CheckLocationDialog(showLocationDialog) {
+                isCameraOn = true
+                showLocationDialog = false
+            }
+            if (isCameraOn) {
                 Dialog(
                     onDismissRequest = { isCameraOn = false },
                     properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -259,13 +334,14 @@ fun BooksPage(navController: NavController, authViewModel: AuthViewModel) {
                             .background(Color.Black)
                     ) {
                         QRCodeScannerScreen(
+                            numOfCom = 0,
                             onResult = {
-                                if(isIssueSelected) {
-                                    issueBookData = parseQRCodeData(it)
+                                if (isIssueSelected) {
+                                    issueBookData = it
                                     isCameraOn = false
                                     isIssueDataVisible = true
-                                }else{
-                                    submitBookData = parseQRCodeData(it)
+                                } else {
+                                    submitBookData = it
                                     isCameraOn = false
                                     isSubmitDataVisible = true
                                 }
@@ -296,8 +372,14 @@ private fun requestLocationUpdates(
         }
     }
 
-    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    if (ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED ||
+        ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     ) {
         locationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }

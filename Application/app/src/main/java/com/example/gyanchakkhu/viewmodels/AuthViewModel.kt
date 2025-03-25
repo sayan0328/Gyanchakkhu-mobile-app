@@ -6,6 +6,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -42,16 +43,30 @@ class AuthViewModel(
     private val _isConnected = MutableStateFlow(false)
     val isConnected = _isConnected.asStateFlow()
 
-    private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val _showPing = MutableStateFlow(true)
+    val showPing = _showPing.asStateFlow()
+
+    private val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             _isConnected.value = true
+            if (_authState.value == AuthState.Authenticated) {
+                Toast.makeText(context, "Internet Connection Available", Toast.LENGTH_SHORT).show()
+            }
         }
+
         override fun onLost(network: Network) {
             _isConnected.value = false
+            if (_authState.value == AuthState.Authenticated) {
+                Toast.makeText(context, "Please Check Your Internet Connection", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
+
+    private val libraryNameCache = mutableMapOf<String, String>()
 
     init {
         val networkRequest = NetworkRequest.Builder()
@@ -68,30 +83,29 @@ class AuthViewModel(
         if (currentUser == null) {
             _authState.value = AuthState.Unauthenticated
             _isEnrolledInLibrary.value = false
-        } else {
-            val userId = currentUser.uid
-            database.child("userList").child(userId).get()
-                .addOnSuccessListener { snapshot ->
-                    if (snapshot.exists()) {
-                        fetchUserData(userId) { user ->
-                            _isEnrolledInLibrary.value = user.libraryUid != null
-                            user.libraryUid?.let {
-                                getLibraryName(it)
-                                booksViewModel.fetchBooks(it, database)
-                                booksViewModel.fetchMyBooks(userId, it, database)
-
-                            }
-                            _authState.value = AuthState.Authenticated
-                        }
-                    } else {
-                        _authState.value = AuthState.Unauthenticated
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Log.e("FirebaseCheckAuth", "Error checking authentication status: ${e.message}")
-                    _authState.value = AuthState.Error("Error fetching user data")
-                }
+            return
         }
+        val userId = currentUser.uid
+        database.child("userList").child(userId).get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    fetchUserData(userId) { user ->
+                        _isEnrolledInLibrary.value = user.libraryUid != null
+                        user.libraryUid?.let {
+                            getLibraryName(it)
+                            booksViewModel.fetchBooks(it, database)
+                            booksViewModel.fetchMyBooks(userId, it, database)
+                        }
+                        _authState.value = AuthState.Authenticated
+                    }
+                } else {
+                    _authState.value = AuthState.Unauthenticated
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseCheckAuth", "Error checking authentication status: ${e.message}")
+                _authState.value = AuthState.Error("Error fetching user data")
+            }
     }
 
 
@@ -110,6 +124,7 @@ class AuthViewModel(
                     _authState.value = AuthState.Error(task.exception?.message ?: "Login failed")
                 }
             }
+        _showPing.value = true
     }
 
     fun signup(name: String, email: String, password: String, confirmPassword: String) {
@@ -117,8 +132,11 @@ class AuthViewModel(
             name.isBlank() -> _authState.value = AuthState.Error("Name is required")
             email.isBlank() -> _authState.value = AuthState.Error("Email cannot be empty")
             password.isBlank() -> _authState.value = AuthState.Error("Password cannot be empty")
-            password.contains(" ") -> _authState.value = AuthState.Error("Password cannot contain spaces")
-            password != confirmPassword -> _authState.value = AuthState.Error("Passwords do not match")
+            password.contains(" ") -> _authState.value =
+                AuthState.Error("Password cannot contain spaces")
+
+            password != confirmPassword -> _authState.value =
+                AuthState.Error("Passwords do not match")
 
             else -> {
                 _authState.value = AuthState.Loading
@@ -144,9 +162,10 @@ class AuthViewModel(
                     }
             }
         }
+        _showPing.value = true
     }
 
-    fun signout() {
+    fun signOut() {
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
         _userData.value = UserData()
@@ -154,9 +173,10 @@ class AuthViewModel(
         _libraryName.value = "Not Found!"
         booksViewModel.clearBookList()
         booksViewModel.clearMyBookList()
+        _showPing.value = false
     }
 
-    fun unAuthenticateUser(){
+    fun unAuthenticateUser() {
         _authState.value = AuthState.Unauthenticated
     }
 
@@ -176,88 +196,113 @@ class AuthViewModel(
             })
     }
 
-    private fun getLibraryName(libraryUid: String) {
-        database.child("libraryList").child(libraryUid).child("name").get()
-            .addOnSuccessListener { snapshot ->
-                _libraryName.value = snapshot.value.toString()
+    fun authenticateAsLibraryUser(libraryName: String, libraryUid: String) {
+        if (libraryName.isBlank() || libraryUid.isBlank()) return
+        val userId = auth.currentUser?.uid ?: return
+        val user = _userData.value ?: return
+        var cardUid = ""
+        if (libraryNameCache[libraryUid] == libraryName) {
+            database.child("userList").child(userId).child("userLibraryList").child(libraryUid)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        cardUid = snapshot.value.toString()
+                        _isEnrolledInLibrary.value = true
+                        _userData.value =
+                            _userData.value?.copy(libraryUid = libraryUid, cardUid = cardUid)
+                        getLibraryName(libraryUid)
+                        booksViewModel.fetchBooks(libraryUid, database)
+                        booksViewModel.fetchMyBooks(userId, libraryUid, database)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        _authState.value = AuthState.Error("Could not fetch cardUid")
+                        Log.e("FirebaseEnroll", "Error fetching cardUid: ${error.message}")
+                    }
+                })
+
+        } else {
+            cardUid = generateUniqueCardId(user.name ?: return, libraryUid)
+            database.child("libraryList").child(libraryUid).child("name")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (snapshot.value == libraryName) {
+                            libraryNameCache[libraryUid] = libraryName
+                            registerUserToLibrary(userId, user.name, libraryUid, cardUid)
+                        } else {
+                            _authState.value = AuthState.Error("Library name and ID do not match")
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("FirebaseEnroll", "Error fetching library data: ${error.message}")
+                    }
+                })
+        }
+    }
+
+    private fun registerUserToLibrary(
+        userId: String,
+        userName: String,
+        libraryUid: String,
+        cardUid: String
+    ) {
+        val updates = mapOf(
+            "/libraryList/$libraryUid/libraryUserList/$userId/name" to userName,
+            "/libraryList/$libraryUid/libraryUserList/$userId/cardUid" to cardUid,
+            "/userList/$userId/userLibraryList/$libraryUid" to cardUid,
+            "/userList/$userId/libraryUid/" to libraryUid,
+            "/userList/$userId/cardUid" to cardUid,
+        )
+
+        database.updateChildren(updates)
+            .addOnSuccessListener {
+                _isEnrolledInLibrary.value = true
+                _userData.value = _userData.value?.copy(libraryUid = libraryUid, cardUid = cardUid)
+                getLibraryName(libraryUid)
+                booksViewModel.fetchBooks(libraryUid, database)
+                booksViewModel.fetchMyBooks(userId, libraryUid, database)
             }
             .addOnFailureListener { e ->
-                Log.e("FirebaseGetLibName", "Error fetching library name: ${e.message}")
+                Log.e("FirebaseEnroll", "Could not update library user data: ${e.message}")
             }
+    }
+
+    private fun getLibraryName(libraryUid: String) {
+        if (libraryNameCache.containsKey(libraryUid)) {
+            _libraryName.value = libraryNameCache[libraryUid]
+        } else {
+            database.child("libraryList").child(libraryUid).child("name").get()
+                .addOnSuccessListener { snapshot ->
+                    libraryNameCache[libraryUid] = snapshot.value.toString()
+                    _libraryName.value = snapshot.value.toString()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FirebaseGetLibName", "Error fetching library name: ${e.message}")
+                }
+        }
     }
 
     fun removeLibrary() {
+        _isEnrolledInLibrary.value = false
+        _userData.value = _userData.value?.copy(libraryUid = null, cardUid = null)
+        _libraryName.value = "Not Found!"
+        booksViewModel.clearBookList()
+        booksViewModel.clearMyBookList()
+        Log.d("FirebaseEnroll", "Library user removed successfully")
+    }
+
+    fun issueUserBook(bookId: String, bookName: String, onSuccess: () -> Unit) {
         val userId = auth.currentUser?.uid ?: return
         val user = _userData.value ?: return
         val libraryUid = user.libraryUid ?: return
-        database.child("libraryList").child(libraryUid).child("libraryUserList").child(userId).removeValue()
-            .addOnSuccessListener {
-                database.child("userList").child(userId).updateChildren(
-                    mapOf("libraryUid" to null, "cardUid" to null)
-                ).addOnSuccessListener {
-                    _isEnrolledInLibrary.value = false
-                    _userData.value = user.copy(libraryUid = null, cardUid = null)
-                    _libraryName.value = "Not Found!"
-                    booksViewModel.clearBookList()
-                    booksViewModel.clearMyBookList()
-                    Log.d("FirebaseEnroll", "Library user removed successfully")
-                }.addOnFailureListener { e ->
-                    Log.e("FirebaseEnroll", "Could not update library user data: ${e.message}")
-                }
-            }
-            .addOnFailureListener {
-                Log.e("FirebaseEnroll", "Could not remove library user: ${it.message}")
-            }
+        booksViewModel.issueBook(bookId, bookName, userId, libraryUid, database, onSuccess)
     }
 
-    fun registerAsLibraryUser(libraryName: String, libraryUid: String) {
-        val userId = auth.currentUser?.uid ?: return
-        val user = _userData.value ?: return
-        val cardUid = generateUniqueCardId(user.name ?: return, libraryUid)
-
-        database.child("libraryList").child(libraryUid).child("name").get()
-            .addOnSuccessListener { snapshot ->
-                if (snapshot.value == libraryName) {
-                    database.child("libraryList").child(libraryUid).child("libraryUserList")
-                        .child(userId).setValue(true)
-                        .addOnSuccessListener {
-                            database.child("userList").child(userId).updateChildren(
-                                mapOf("libraryUid" to libraryUid, "cardUid" to cardUid)
-                            ).addOnSuccessListener {
-                                _isEnrolledInLibrary.value = true
-                                _userData.value =
-                                    user.copy(libraryUid = libraryUid, cardUid = cardUid)
-                                getLibraryName(libraryUid)
-                                booksViewModel.fetchBooks(libraryUid, database)
-                                booksViewModel.fetchMyBooks(userId, libraryUid, database)
-                                Log.d("FirebaseEnroll", "Library user registered successfully")
-                            }.addOnFailureListener { e ->
-                                Log.e(
-                                    "FirebaseEnroll",
-                                    "Could not update library user data: ${e.message}"
-                                )
-                            }
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(
-                                "FirebaseEnroll",
-                                "Could not register as library user: ${e.message}"
-                            )
-                        }
-                } else {
-                    _authState.value = AuthState.Error("Library name and ID do not match")
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e("FirebaseEnroll", "Error fetching library data: ${e.message}")
-            }
-    }
-
-    fun issueUserBook(book: Book, onSuccess: () -> Unit){
+    fun submitUserBook(bookId: String, onSuccess: () -> Unit) {
         val userId = auth.currentUser?.uid ?: return
         val user = _userData.value ?: return
         val libraryUid = user.libraryUid ?: return
-        booksViewModel.issueBook(book, userId, libraryUid, database, onSuccess)
+        booksViewModel.submitBook(bookId, userId, libraryUid, database, onSuccess)
     }
 
     private fun isInternetAvailable(): Boolean {

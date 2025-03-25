@@ -38,17 +38,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.MyPurple120
-import com.example.gyanchakkhu.ui.theme.MyPurple80
+import com.example.gyanchakkhu.ui.theme.MyPurple100
+import com.example.gyanchakkhu.ui.theme.MyPurple60
 import com.example.gyanchakkhu.ui.theme.MyRed80
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.utils.CustomTextField
 import com.example.gyanchakkhu.utils.DigitalLibraryCard
 import com.example.gyanchakkhu.utils.MyHorizontalDivider
+import com.example.gyanchakkhu.utils.QRCodeScannerScreen
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
+import com.example.gyanchakkhu.utils.parseQRCodeData
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
@@ -63,6 +69,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
     val userLibName = libName ?: "Not Found!"
     val userLibUid = userData?.libraryUid ?: "Not Found!"
     val userCardIssueNumber = userData?.cardUid ?: "Not Found!"
+    var isCameraOn by remember { mutableStateOf(false) }
 
     var libNameField by remember { mutableStateOf("") } // Library Name Field Value
     var libUIDField by remember { mutableStateOf("") } // Library UID Field Value
@@ -92,13 +99,6 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                 .fillMaxSize()
                 .background(gradient)
         ) {
-            if (!isUserEnrolledInLibrary) {
-                Image(
-                    painter = painterResource(id = R.drawable.bg_idle),
-                    contentDescription = "Home Bg",
-                    Modifier.align(Alignment.Center)
-                )
-            }
             LazyColumn(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -109,42 +109,46 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(30.dp))
                         Image(
                             painter = painterResource(id = R.drawable.bg_home),
                             contentDescription = "Login/SignUp Bg",
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(30.dp),
                             contentScale = ContentScale.FillWidth
                         )
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = "Personal Information",
+                            color = MyPurple100,
+                            fontSize = 24.sp,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(12.dp)
+                        )
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
-                                .padding(horizontal = 30.dp),
+                                .padding(top = 16.dp, start = 30.dp, end = 30.dp),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(
-                                text = "Personal Information",
-                                color = MyPurple80,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(16.dp)
-                            )
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                             ) {
                                 Text(
                                     text = "Name",
+                                    color = MyPurple100,
+                                    fontFamily = poppinsFontFamily,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.weight(1f)
                                 )
                                 Text(
                                     text = userName,
+                                    fontFamily = poppinsFontFamily,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
                                         .weight(2f),
@@ -155,11 +159,14 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                             Row {
                                 Text(
                                     text = "Email",
+                                    color = MyPurple100,
+                                    fontFamily = poppinsFontFamily,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.weight(1f)
                                 )
                                 Text(
                                     text = userEmail,
+                                    fontFamily = poppinsFontFamily,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
                                         .weight(2f),
@@ -170,11 +177,14 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                             Row {
                                 Text(
                                     text = "Password",
+                                    color = MyPurple100,
+                                    fontFamily = poppinsFontFamily,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.weight(1f)
                                 )
                                 Text(
                                     text = "******",
+                                    fontFamily = poppinsFontFamily,
                                     modifier = Modifier
                                         .padding(horizontal = 12.dp)
                                         .weight(2f),
@@ -182,39 +192,60 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
-                            Button(
-                                modifier = Modifier
-                                    .padding(top = 12.dp, bottom = 20.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .height(36.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Blue40),
-                                onClick = {/*TODO*/ }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "Change Password",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                )
+                                Button(
+                                    modifier = Modifier
+                                        .padding(top = 12.dp, bottom = 20.dp)
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .height(36.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MyPurple120),
+                                    onClick = { /*TODO*/ }
+                                ) {
+                                    Text(
+                                        text = "Change Password",
+                                        color = Color.Black,
+                                        fontFamily = poppinsFontFamily,
+                                    )
+                                }
+                                Button(
+                                    modifier = Modifier
+                                        .padding(top = 12.dp, bottom = 20.dp)
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .height(36.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                                    onClick = { authViewModel.signOut() }
+                                ) {
+                                    Text(
+                                        text = "Signout",
+                                        color = Color.White,
+                                        fontFamily = poppinsFontFamily,
+                                    )
+                                }
                             }
                         }
                         MyHorizontalDivider()
+                        Text(
+                            text = "Library Information",
+                            color = MyPurple100,
+                            fontSize = 24.sp,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(12.dp)
+                        )
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
-                                .padding(horizontal = 30.dp),
+                                .padding(top = 16.dp, start = 30.dp, end = 30.dp),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(
-                                text = "Library Information",
-                                color = MyPurple80,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(16.dp)
-                            )
                             Column(
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
@@ -222,9 +253,15 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
 
                                 Row {
                                     Column {
-                                        Text(text = "Library Name", fontWeight = FontWeight.Bold)
+                                        Text(
+                                            text = "Library Name",
+                                            color = MyPurple100,
+                                            fontFamily = poppinsFontFamily,
+                                            fontWeight = FontWeight.Bold)
                                         Text(
                                             text = "Library Unique ID",
+                                            color = MyPurple100,
+                                            fontFamily = poppinsFontFamily,
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
@@ -236,6 +273,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                         if (isUserEnrolledInLibrary) {
                                             Text(
                                                 text = userLibName,
+                                                fontFamily = poppinsFontFamily,
                                                 modifier = Modifier
                                                     .align(Alignment.End)
                                                     .horizontalScroll(rememberScrollState()),
@@ -244,6 +282,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                             )
                                             Text(
                                                 text = userLibUid,
+                                                fontFamily = poppinsFontFamily,
                                                 modifier = Modifier
                                                     .align(Alignment.End)
                                                     .horizontalScroll(rememberScrollState()),
@@ -264,40 +303,68 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                         }
                                     }
                                 }
-                                Button(
-                                    modifier = Modifier
-                                        .padding(20.dp)
-                                        .clip(RoundedCornerShape(20.dp))
-                                        .height(36.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = if (isUserEnrolledInLibrary) MyRed80 else Blue40),
-                                    onClick = {
-                                        libNameField = libNameField.trim()
-                                        libUIDField = libUIDField.trim()
-                                        if (isUserEnrolledInLibrary) {
-                                            authViewModel.removeLibrary()
-                                            libNameField = ""
-                                            libUIDField = ""
-                                        } else authViewModel.registerAsLibraryUser(
-                                            libNameField,
-                                            libUIDField
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Button(
+                                        modifier = Modifier
+                                            .padding(20.dp)
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .height(36.dp)
+                                            .then(
+                                                if(isUserEnrolledInLibrary) Modifier.fillMaxWidth() else Modifier
+                                            ),
+                                        colors = ButtonDefaults.buttonColors(containerColor = if (isUserEnrolledInLibrary) MyRed80 else MyPurple120),
+                                        onClick = {
+                                            libNameField = libNameField.trim()
+                                            libUIDField = libUIDField.trim()
+                                            if (isUserEnrolledInLibrary) {
+                                                authViewModel.removeLibrary()
+                                                libNameField = ""
+                                                libUIDField = ""
+                                            } else authViewModel.authenticateAsLibraryUser(
+                                                libNameField,
+                                                libUIDField
+                                            )
+                                        }
+                                    ) {
+                                        Text(
+                                            text = if (isUserEnrolledInLibrary) "Change Library" else "Submit",
+                                            color = if (isUserEnrolledInLibrary) Color.White else Color.Black,
+                                            fontFamily = poppinsFontFamily,
                                         )
                                     }
-                                ) {
-                                    Text(
-                                        text = if (isUserEnrolledInLibrary) "Change Library" else "Submit",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                    )
+                                    if(!isUserEnrolledInLibrary){
+                                        Button(
+                                            modifier = Modifier
+                                                .padding(20.dp)
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .height(36.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Blue40),
+                                            onClick = {
+                                                isCameraOn = true
+                                            }
+                                        ) {
+                                            Text(
+                                                text = "Scan QR",
+                                                color = Color.White,
+                                                fontFamily = poppinsFontFamily
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                         MyHorizontalDivider()
                         Text(
                             text = "Virtual Library Card",
-                            color = MyPurple80,
-                            fontSize = 20.sp,
+                            color = MyPurple100,
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 12.dp)
+                            modifier = Modifier.padding(12.dp)
                         )
                         DigitalLibraryCard(
                             name = userName,
@@ -306,18 +373,34 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                             libraryUid = userLibUid,
                             isUserEnrolledInLibrary = isUserEnrolledInLibrary,
                         )
-                        Button(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp)),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                            onClick = { authViewModel.signout() }
-                        ) {
-                            Text(text = "Logout", color = Color.White)
-                        }
                         Spacer(modifier = Modifier.height(200.dp))
                     }
                 }
             }
+            if(isCameraOn){
+                Dialog(
+                    onDismissRequest = { isCameraOn = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Black)
+                    ) {
+                        QRCodeScannerScreen(
+                            numOfCom = 1,
+                            onResult = {
+                                val libData = parseQRCodeData(it)
+                                libNameField = libData[0]
+                                libUIDField = libData[1]
+                                isCameraOn = false
+                            },
+                            onClose = { isCameraOn = false }
+                        )
+                    }
+                }
+            }
+
         }
     }
 }

@@ -1,19 +1,20 @@
 <resources>
     <string name="app_name">Gyanchakkhu</string>
-    <string name="login">Log In</string>
-    <string name="welcome_lg">Welcome Back. Please Enter Your Details.</string>
+    <string name="login">Sign In</string>
+    <string name="welcome_si">Welcome back! Please enter your details below to access your account and continue.</string>
     <string name="forgot_password">I forgot my password</string>
     <string name="no_account">Don’t have an account?</string>
     <string name="goto_signup">Create an account</string>
     <string name="signup">Sign Up</string>
-    <string name="welcome_sg">New Here? Create Your Account Now!</string>
+    <string name="welcome_sg">New here? Fill in your details to create your account and start your journey with us!</string>
     <string name="have_account">Already have an account?</string>
-    <string name="goto_login">Log In</string>
-    <string name="help">Need Help?</string>
+    <string name="goto_login">Log in</string>
     <string name="complete_profile">Please complete your profile</string>
     <string name="issue_message">Tap on the QR code icon to initiate the scanning process.</string>
+    <string name="issue_help">Flip the book and scan the QR code to issue!</string>
     <string name="submit_message">First, click on the QR code icon to scan the QR, then start recording by selecting the video icon to complete the process.</string>
     <string name="history_page_message">It looks like you haven’t\nstarted reading yet!!!!!!!</string>
+    <string name="home_empty_message">Here, we got you, Start with a great read!</string>
     <string name="home_recent_message">Recent Issued Books</string>
     <string name="home_recommended_message">Recommended Books</string>
     <string name="home_trending_message">Trending Books</string>

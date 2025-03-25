@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,6 +25,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,18 +40,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
+import com.example.gyanchakkhu.ui.theme.MyPurple80
 import com.example.gyanchakkhu.ui.theme.Purple40
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.utils.BookDetailsInSearch
 import com.example.gyanchakkhu.utils.CustomSearchBar
+import com.example.gyanchakkhu.utils.ExpandedBookDetailsInSearch
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.fadingEdge
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.example.gyanchakkhu.viewmodels.Book
 import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
@@ -59,8 +70,10 @@ fun SearchPage(
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val searchText by booksViewModel.searchText.collectAsState()
     val books by booksViewModel.books.collectAsState()
+    val groupedBooks  = books.groupBy { it.genre }.toSortedMap()
     val isSearching by booksViewModel.isSearching.collectAsState()
-    val isSearchBarEmpty by booksViewModel.isSearchBarEmpty.collectAsState()
+    var expandedBook by remember { mutableStateOf(Book("", "", "", "", "")) }
+    var showExpandedDetails by remember { mutableStateOf(false) }
     val topFade = Brush.verticalGradient(0f to Color.Transparent, 0.05f to Color.Black)
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -100,14 +113,14 @@ fun SearchPage(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(30.dp))
                 Image(
                     painter = painterResource(id = R.drawable.bg_home),
                     contentDescription = "Login/SignUp Bg",
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(30.dp),
                     contentScale = ContentScale.FillWidth
                 )
-                Spacer(modifier = Modifier.height(30.dp))
                 if (!isUserEnrolledInLibrary) {
                     Row(
                         modifier = Modifier
@@ -122,12 +135,14 @@ fun SearchPage(
                     ) {
                         Text(
                             text = stringResource(id = R.string.complete_profile),
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            fontFamily = poppinsFontFamily
                         )
                         Text(
                             text = "Goto Profile",
                             color = Blue80,
                             fontSize = 14.sp,
+                            fontFamily = poppinsFontFamily,
                             modifier = Modifier
                                 .clickable {
                                     navController.navigate(Routes.profile_page) {
@@ -144,7 +159,7 @@ fun SearchPage(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     value = searchText,
                     onValueChange = booksViewModel::onSearchTextChange,
-                    placeholderText = "Search your book",
+                    placeholderText = "Explore books by title, author, genre",
                     containerColor = Color.White
                 )
                 if (isSearching) {
@@ -161,13 +176,13 @@ fun SearchPage(
                             .fadingEdge(topFade)
                             .fillMaxWidth()
                             .weight(1f)
-                            .padding(horizontal = 16.dp)
                     ) {
                         if (books.isEmpty()) {
                             item {
                                 Column(
                                     modifier = Modifier
-                                        .fillMaxWidth(),
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Image(
@@ -178,29 +193,74 @@ fun SearchPage(
                                             .padding(top = 40.dp, bottom = 16.dp)
                                     )
                                     Text(
-                                        text = "No books found", // Replace with your message
+                                        text = "No books found",
                                         color = Purple40,
+                                        fontFamily = poppinsFontFamily,
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 }
                             }
                         } else {
-                            items(books) { book ->
+                            item {
                                 Spacer(modifier = Modifier.height(24.dp))
-                                BookDetailsInSearch(
-                                    bookName = book.bookName,
-                                    bookId = book.bookId,
-                                    librarySection = book.libSection,
-                                    rackNo = book.rackNo
-                                )
+                                groupedBooks.forEach { (genre, booksInGenre) ->
+                                    Text(
+                                        text = genre,
+                                        color = MyPurple80,
+                                        fontFamily = poppinsFontFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 24.sp,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    LazyRow {
+                                        item { Spacer(modifier = Modifier.width(16.dp)) }
+
+                                        items(booksInGenre.sortedBy { it.bookName }) { book ->
+                                            BookDetailsInSearch(
+                                                book = book,
+                                                onClick = {
+                                                    expandedBook = book
+                                                    showExpandedDetails = true
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                }
                             }
+
                         }
 
                         item {
-                            Spacer(modifier = Modifier.height(160.dp))
+                            Spacer(modifier = Modifier.height(140.dp))
                         }
                     }
                 }
+            }
+        }
+        if (showExpandedDetails) {
+            Dialog(
+                onDismissRequest = { showExpandedDetails = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                ExpandedBookDetailsInSearch(
+                    book = expandedBook,
+                    onClose = {
+                        showExpandedDetails = false
+                    },
+                    toIssue = {
+                        showExpandedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.books_page)
+                    },
+                    showSimilar = {
+                        showExpandedDetails = false
+                        booksViewModel.onSearchTextChange(expandedBook.genre)
+                    },
+                    message = "Similar Books"
+                )
             }
         }
     }
