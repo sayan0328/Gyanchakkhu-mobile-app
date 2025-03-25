@@ -177,9 +177,13 @@ class BooksViewModel: ViewModel(){
     }
 
     fun submitBook(bookId: String, userId: String, libraryUid: String, database: DatabaseReference, onSuccess: () -> Unit) {
+        val (today, _) = getIssueAndSubmitDate()
+
         val updates = mapOf(
             "/userList/$userId/myBooks/$libraryUid/${bookId}/isSubmitted" to true,
-            "/libraryList/$libraryUid/libraryUserList/$userId/${bookId}/isSubmitted" to true
+            "/userList/$userId/myBooks/$libraryUid/${bookId}/submitDate" to today,
+            "/libraryList/$libraryUid/libraryUserList/$userId/${bookId}/isSubmitted" to true,
+            "/libraryList/$libraryUid/libraryUserList/$userId/${bookId}/submitDate" to today
         )
 
         database.updateChildren(updates)

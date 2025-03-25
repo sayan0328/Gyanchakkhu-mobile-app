@@ -33,7 +33,7 @@ fun CustomTextField(text: String, onValueChange: (String) -> Unit, label: String
         modifier = Modifier
             .fillMaxWidth()
             .onFocusChanged { isFocused = it.isFocused },
-        textStyle = TextStyle(fontFamily = poppinsFontFamily,),
+        textStyle = TextStyle(fontFamily = poppinsFontFamily),
         decorationBox = { innerTextField ->
             Box(
                 modifier = Modifier

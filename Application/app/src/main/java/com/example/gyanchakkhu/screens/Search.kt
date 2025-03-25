@@ -52,6 +52,7 @@ import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.utils.BookDetailsInSearch
 import com.example.gyanchakkhu.utils.CustomSearchBar
 import com.example.gyanchakkhu.utils.ExpandedBookDetailsInSearch
+import com.example.gyanchakkhu.utils.GoToProfile
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.fadingEdge
 import com.example.gyanchakkhu.utils.gradientBrush
@@ -101,13 +102,6 @@ fun SearchPage(
                 .fillMaxSize()
                 .background(gradient)
         ) {
-            if (!isUserEnrolledInLibrary) {
-                Image(
-                    painter = painterResource(id = R.drawable.bg_idle),
-                    contentDescription = "Home Bg",
-                    Modifier.align(Alignment.Center)
-                )
-            }
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top,
@@ -122,36 +116,12 @@ fun SearchPage(
                     contentScale = ContentScale.FillWidth
                 )
                 if (!isUserEnrolledInLibrary) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White)
-                            .padding(horizontal = 20.dp)
-                            .height(36.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.complete_profile),
-                            fontSize = 14.sp,
-                            fontFamily = poppinsFontFamily
-                        )
-                        Text(
-                            text = "Goto Profile",
-                            color = Blue80,
-                            fontSize = 14.sp,
-                            fontFamily = poppinsFontFamily,
-                            modifier = Modifier
-                                .clickable {
-                                    navController.navigate(Routes.profile_page) {
-                                        popUpTo(Routes.home_page) {
-                                            inclusive = true
-                                        }
-                                    }
-                                }
-                        )
+                    GoToProfile {
+                        navController.navigate(Routes.profile_page) {
+                            popUpTo(Routes.home_page) {
+                                inclusive = true
+                            }
+                        }
                     }
                     Spacer(modifier = Modifier.height(24.dp))
                 }

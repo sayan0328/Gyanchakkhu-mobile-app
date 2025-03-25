@@ -1,6 +1,9 @@
 package com.example.gyanchakkhu.screens
 
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -57,6 +61,7 @@ import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
@@ -73,8 +78,24 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
         end = Offset(0f, POSITIVE_INFINITY)
     )
 
-    val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val authState = authViewModel.authState.observeAsState()
+
+//    val googleSignInLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.StartActivityForResult(),
+//        onResult = { result ->
+//            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+//            try {
+//                val account = task.getResult(Exception::class.java)
+//                account?.idToken?.let { idToken ->
+//                    authViewModel.firebaseAuthWithGoogle(idToken)
+//                }
+//            } catch (e: Exception) {
+//                Log.e("GoogleSignIn", "Google sign-in failed", e)
+//            }
+//        }
+//    )
+
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Authenticated -> {
@@ -250,6 +271,17 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
                             style = TextStyle(fontFamily = poppinsFontFamily)
                         )
                     }
+//                    Spacer(modifier = Modifier.height(20.dp))
+//                    Button(
+//                        onClick = {
+//                            googleSignInLauncher.launch(authViewModel.googleSignInIntent())
+//                        }
+//                    ) {
+//                        Image(
+//                            painter = painterResource(id = R.drawable.home_notice_ping),
+//                            contentDescription = "Google Login"
+//                        )
+//                    }
                     Text(
                         text = stringResource(id = R.string.no_account),
                         modifier = Modifier

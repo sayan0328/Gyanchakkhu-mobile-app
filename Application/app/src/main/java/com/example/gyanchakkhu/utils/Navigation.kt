@@ -48,6 +48,7 @@ fun AppNavigation(authViewModel: AuthViewModel, booksViewModel: BooksViewModel) 
                         currentDestination = currentDestination,
                         items = listOfNavItems,
                         onItemClick = { item ->
+                            booksViewModel.clearSearchText()
                             navController.navigate(item.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true

@@ -18,7 +18,6 @@
     <string name="home_recent_message">Recent Issued Books</string>
     <string name="home_recommended_message">Recommended Books</string>
     <string name="home_trending_message">Trending Books</string>
-    <string name="notice_board_message">Notice Board</string>
     <string name="scan_qr_message">Scan QR for details</string>
     <string name="empty_issue_message">No Books Are Issued</string>
     <string name="empty_recommended_message">Issue Some Books First</string>

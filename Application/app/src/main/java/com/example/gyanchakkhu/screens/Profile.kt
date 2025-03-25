@@ -1,5 +1,10 @@
 package com.example.gyanchakkhu.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -33,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
@@ -61,6 +68,7 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
 fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
+    val context = LocalContext.current
     val userData by authViewModel.userData.observeAsState()
     val libName by authViewModel.libraryName.observeAsState()
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
@@ -88,6 +96,35 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
         when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
             else -> Unit
+        }
+    }
+
+    var isGranted by remember { mutableStateOf(true) }
+    val permissions = arrayOf(
+        Manifest.permission.CAMERA
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissionsResult ->
+        val allGranted = permissionsResult.all { it.value }
+        if (allGranted) {
+            isGranted = true
+            Toast.makeText(context, "All permissions granted!", Toast.LENGTH_SHORT).show()
+        } else {
+            isGranted = false
+            Toast.makeText(context, "Some permissions were denied!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (permissions.any {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    it
+                ) != PackageManager.PERMISSION_GRANTED
+            }) {
+            permissionLauncher.launch(permissions)
         }
     }
 
@@ -310,7 +347,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                 ) {
                                     Button(
                                         modifier = Modifier
-                                            .padding(20.dp)
+                                            .padding(top = 12.dp, bottom = 20.dp)
                                             .clip(RoundedCornerShape(20.dp))
                                             .height(36.dp)
                                             .then(
@@ -339,12 +376,17 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                     if(!isUserEnrolledInLibrary){
                                         Button(
                                             modifier = Modifier
-                                                .padding(20.dp)
+                                                .padding(top = 12.dp, bottom = 20.dp)
                                                 .clip(RoundedCornerShape(20.dp))
                                                 .height(36.dp),
                                             colors = ButtonDefaults.buttonColors(containerColor = Blue40),
                                             onClick = {
-                                                isCameraOn = true
+                                                if(isGranted) isCameraOn = true
+                                                else Toast.makeText(
+                                                    context,
+                                                    "Please allow camera permission!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                         ) {
                                             Text(

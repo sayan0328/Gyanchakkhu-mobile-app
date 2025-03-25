@@ -58,7 +58,9 @@ import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple100
 import com.example.gyanchakkhu.ui.theme.MyPurple120
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.utils.CheckLocationDialog
+import com.example.gyanchakkhu.utils.GoToProfile
 import com.example.gyanchakkhu.utils.QRCodeScannerScreen
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.gradientBrush
@@ -172,13 +174,6 @@ fun BooksPage(
                     .offset(x = (-100).dp, y = 480.dp)
                     .rotate(45f)
             )
-            if (!isUserEnrolledInLibrary) {
-                Image(
-                    painter = painterResource(id = R.drawable.bg_idle),
-                    contentDescription = "Home Bg",
-                    Modifier.align(Alignment.Center)
-                )
-            }
             LazyColumn(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -207,36 +202,14 @@ fun BooksPage(
                             contentScale = ContentScale.FillWidth
                         )
                         if (!isUserEnrolledInLibrary) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(Color.White)
-                                    .padding(horizontal = 20.dp)
-                                    .height(36.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.complete_profile),
-                                    fontSize = 14.sp
-                                )
-                                Text(
-                                    text = "Goto Profile",
-                                    color = Blue80,
-                                    fontSize = 14.sp,
-                                    modifier = Modifier
-                                        .clickable {
-                                            navController.navigate(Routes.profile_page) {
-                                                popUpTo(Routes.home_page) {
-                                                    inclusive = true
-                                                }
-                                            }
-                                        }
-                                )
+                            GoToProfile {
+                                navController.navigate(Routes.profile_page) {
+                                    popUpTo(Routes.home_page) {
+                                        inclusive = true
+                                    }
+                                }
                             }
-                            Spacer(modifier = Modifier.height(30.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
                         }
                         Row {
                             Button(
@@ -253,6 +226,7 @@ fun BooksPage(
                                 Text(
                                     text = "Issue",
                                     color = if (!isIssueSelected) MyPurple100 else Color.White,
+                                    fontFamily = poppinsFontFamily,
                                     fontSize = 16.sp
                                 )
                             }
@@ -270,6 +244,7 @@ fun BooksPage(
                                 Text(
                                     text = "Submit",
                                     color = if (isIssueSelected) MyPurple100 else Color.White,
+                                    fontFamily = poppinsFontFamily,
                                     fontSize = 16.sp
                                 )
                             }
