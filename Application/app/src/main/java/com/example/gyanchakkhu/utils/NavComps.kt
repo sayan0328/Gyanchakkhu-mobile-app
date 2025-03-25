@@ -37,6 +37,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.Gray
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 
 
 @Composable
@@ -120,7 +121,12 @@ fun CustomNavigationBarItem(
             )
         }
         if (!isSelected) {
-            Text(text = item.label, fontSize = 10.sp, color = Gray, fontWeight = FontWeight.Bold)
+            Text(
+                text = item.label,
+                color = Gray,
+                fontSize = 10.sp,
+                fontFamily = poppinsFontFamily,
+                fontWeight = FontWeight.Bold)
         }
     }
 }

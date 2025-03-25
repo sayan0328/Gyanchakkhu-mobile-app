@@ -28,13 +28,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 
 @Composable
 fun DigitalLibraryCard(
@@ -47,7 +51,7 @@ fun DigitalLibraryCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(Color.White.copy(alpha = 0.6f))
             .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
@@ -70,36 +74,52 @@ fun DigitalLibraryCard(
                         Text(
                             text = name,
                             fontSize = 24.sp,
+                            style = TextStyle(
+                                fontFamily = poppinsFontFamily
+                            ),
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = cardIssueNumber,
                             fontSize = 28.sp,
+                            style = TextStyle(
+                                fontFamily = poppinsFontFamily
+                            ),
                             color = Color.Gray,
-                            modifier = Modifier.height(28.dp)
+                            modifier = Modifier.height(30.dp)
                         )
                         Text(
                             text = "card-issue-number",
                             color = Color.Gray,
-                            style = TextStyle(lineHeight = 1.sp)
+                            style = TextStyle(
+                                lineHeight = 1.sp,
+                                fontFamily = poppinsFontFamily
+                            )
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     Image(
-                        painter = painterResource(id = R.drawable.scholar_owl),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.scholar_owl),
                         modifier = Modifier
                             .size(36.dp),
-                        contentDescription = "Scholar Owl"
+                        contentDescription = "Scholar Owl",
+                        colorFilter = ColorFilter.tint(Color.Black)
                     )
                 }
                 Spacer(modifier = Modifier.height(60.dp))
                 Text(
-                    text = "Library Name: $libraryName",
-                    color = Color.Gray
+                    text = "Library Name : $libraryName",
+                    color = Color.Gray,
+                    style = TextStyle(
+                        fontFamily = poppinsFontFamily
+                    )
                 )
                 Text(
                     text = "Library UID : $libraryUid",
-                    color = Color.Gray
+                    color = Color.Gray,
+                    style = TextStyle(
+                        fontFamily = poppinsFontFamily
+                    )
                 )
             }
             Box(
@@ -116,6 +136,9 @@ fun DigitalLibraryCard(
                     Text(
                         text = "Please enroll in a library",
                         color = Blue80,
+                        style = TextStyle(
+                            fontFamily = poppinsFontFamily
+                        ),
                         fontSize = 18.sp
                     )
                 }

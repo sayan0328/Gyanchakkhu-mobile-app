@@ -13,7 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,25 +35,39 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
+import com.example.gyanchakkhu.ui.theme.Blue40
 import com.example.gyanchakkhu.ui.theme.Blue80
+import com.example.gyanchakkhu.ui.theme.MyPurple100
 import com.example.gyanchakkhu.ui.theme.MyPurple120
-import com.example.gyanchakkhu.ui.theme.MyPurple80
-import com.example.gyanchakkhu.utils.BookDetailsInHome
-import com.example.gyanchakkhu.utils.EmptyCardInHome
-import com.example.gyanchakkhu.utils.MyHorizontalDivider
-import com.example.gyanchakkhu.utils.RecentIssuesInHome
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
+import com.example.gyanchakkhu.utils.BookDetailsInHistory
+import com.example.gyanchakkhu.utils.BookDetailsInSearch
+import com.example.gyanchakkhu.utils.ExpandedBookDetailsInSearch
 import com.example.gyanchakkhu.utils.Routes
+import com.example.gyanchakkhu.utils.SharedPrefs
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.example.gyanchakkhu.viewmodels.Book
 import com.example.gyanchakkhu.viewmodels.BooksViewModel
+import com.example.gyanchakkhu.viewmodels.MyBook
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
@@ -58,19 +76,26 @@ fun HomePage(
     authViewModel: AuthViewModel,
     booksViewModel: BooksViewModel
 ) {
+    val context = LocalContext.current
     val authState = authViewModel.authState.observeAsState()
-    val isConnected by authViewModel.isConnected.collectAsState()
+    val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
     val userData by authViewModel.userData.observeAsState()
     val libName by authViewModel.libraryName.observeAsState()
     val userLibName = libName ?: "Not Found!"
     val cardUid = userData?.cardUid ?: "Not Found!"
     val myBooks by booksViewModel.myBooks.collectAsState()
-    val recentlyIssuedBooks = myBooks.take(3)
+    val recentlyIssuedBooks = myBooks
+        .filter { !it.isSubmitted }
+        .sortedByDescending { parseDate(dateFormat, it.submitDate).time }
+        .take(3)
     val libBooks by booksViewModel.books.collectAsState()
-    val recommendedBooks = libBooks.asSequence().shuffled().take(3).toList()
-    val trendingBooks = libBooks.asSequence().shuffled().take(3).toList()
+    val recommendedBooks = libBooks.asSequence().shuffled().take(6).toList()
+    val trendingBooks = libBooks.asSequence().shuffled().take(6).toList()
     var showNoticeBoard by remember { mutableStateOf(false) }
+    var expandedBook by remember { mutableStateOf(Book("", "", "", "", "")) }
+    var showExpandedDetails by remember { mutableStateOf(false) }
+    var showPing = true
     val gradient = gradientBrush(
         colorStops = arrayOf(
             0.0f to MyPurple120,
@@ -89,7 +114,6 @@ fun HomePage(
             else -> Unit
         }
     }
-
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -119,22 +143,7 @@ fun HomePage(
                     )
                 }
                 item {
-                    if (!isConnected) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.bg_no_internet),
-                                contentDescription = "Network Error",
-                                contentScale = ContentScale.FillWidth
-                            )
-                            Text(
-                                text = stringResource(R.string.network_error_message)
-                            )
-                        }
-                    } else if (!isUserEnrolledInLibrary) {
+                    if (!isUserEnrolledInLibrary) {
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.Top,
@@ -153,12 +162,14 @@ fun HomePage(
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.complete_profile),
-                                    fontSize = 14.sp
+                                    fontSize = 14.sp,
+                                    fontFamily = poppinsFontFamily
                                 )
                                 Text(
                                     text = "Goto Profile",
                                     color = Blue80,
                                     fontSize = 14.sp,
+                                    fontFamily = poppinsFontFamily,
                                     modifier = Modifier
                                         .clickable {
                                             navController.navigate(Routes.profile_page) {
@@ -173,14 +184,15 @@ fun HomePage(
                         }
                     } else {
                         Column(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 36.dp),
+                                    .padding(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -191,116 +203,217 @@ fun HomePage(
                                 ) {
                                     Text(
                                         text = userLibName,
+                                        fontFamily = poppinsFontFamily,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 24.sp
                                     )
                                     Text(
-                                        text = cardUid
+                                        text = cardUid,
+                                        fontFamily = poppinsFontFamily
                                     )
                                 }
                                 Image(
-                                    painter = painterResource(R.drawable.home_notice),
+                                    painter = painterResource(if(showPing) R.drawable.home_notice_ping else R.drawable.home_notice),
                                     contentDescription = "Home Notice Board",
-                                    Modifier.clickable { showNoticeBoard = true }
+                                    Modifier
+                                        .size(36.dp)
+                                        .clickable {
+                                            showNoticeBoard = true
+                                            showPing = false
+                                        }
                                 )
                             }
-                            MyHorizontalDivider()
-                            Text(
-                                text = stringResource(R.string.home_recent_message),
-                                color = MyPurple80,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 20.sp
-                            )
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 18.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                if (myBooks.isEmpty()) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    EmptyCardInHome(
-                                        message = stringResource(R.string.empty_issue_message)
-                                    )
-                                } else {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            if(myBooks.isEmpty()) {
+                                Image(
+                                    painter = painterResource(R.drawable.empty_mind),
+                                    contentDescription = "No books found",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .size(200.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.home_empty_message),
+                                    color = MyPurple100,
+                                    fontFamily = poppinsFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 24.sp,
+                                    modifier = Modifier
+                                        .padding(horizontal = 16.dp)
+                                        .align(Alignment.Start)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                LazyRow {
+                                    item { Spacer(modifier = Modifier.width(16.dp)) }
+                                    items(trendingBooks) { book ->
+                                        BookDetailsInSearch(
+                                            book = book,
+                                            onClick = {
+                                                expandedBook = book
+                                                showExpandedDetails = true
+                                            }
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                LazyRow {
+                                    item { Spacer(modifier = Modifier.width(16.dp)) }
+                                    items(recommendedBooks) { book ->
+                                        BookDetailsInSearch(
+                                            book = book,
+                                            onClick = {
+                                                expandedBook = book
+                                                showExpandedDetails = true
+                                            }
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Text(
+                                    text = buildAnnotatedString {
+                                        withStyle(style = SpanStyle(color = MyPurple100)) {
+                                            append("For more, go to ")
+                                        }
+                                        append("Search")
+                                    },
+                                    color = Blue40,
+                                    fontFamily = poppinsFontFamily,
+                                    fontSize = 20.sp,
+                                    modifier = Modifier
+                                        .clickable {
+                                            navController.popBackStack()
+                                            navController.navigate(Routes.search_page)
+                                        }
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.home_recent_message),
+                                    color = MyPurple100,
+                                    fontFamily = poppinsFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 24.sp,
+                                    modifier = Modifier
+                                        .padding(horizontal = 16.dp)
+                                        .align(Alignment.Start)
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
                                     recentlyIssuedBooks.forEach { book ->
                                         Spacer(modifier = Modifier.height(16.dp))
-                                        RecentIssuesInHome(
-                                            bookName = book.bookName,
-                                            bookId = book.bookId,
-                                            issueDate = book.issueDate,
-                                            submitDate = book.submitDate
+                                        BookDetailsInHistory(
+                                            book = book
                                         )
                                     }
                                 }
-                            }
-                            MyHorizontalDivider()
-                            Text(
-                                text = stringResource(R.string.home_recommended_message),
-                                color = MyPurple80,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 20.sp
-                            )
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 18.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                if (myBooks.isEmpty()) {
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Text(
+                                    text = stringResource(R.string.home_recommended_message),
+                                    color = MyPurple100,
+                                    fontFamily = poppinsFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 24.sp,
+                                    modifier = Modifier
+                                        .padding(horizontal = 16.dp)
+                                        .align(Alignment.Start)
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    EmptyCardInHome(
-                                        message = stringResource(R.string.empty_recommended_message)
-                                    )
-                                } else {
-                                    recommendedBooks.forEach { book ->
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        BookDetailsInHome(
-                                            bookName = book.bookName,
-                                            bookDesc = book.bookDesc
-                                        )
+                                    LazyRow {
+                                        item { Spacer(modifier = Modifier.width(16.dp)) }
+                                        items(recommendedBooks) { book ->
+                                            BookDetailsInSearch(
+                                                book = book,
+                                                onClick = {
+                                                    expandedBook = book
+                                                    showExpandedDetails = true
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                        }
                                     }
                                 }
-                            }
-                            MyHorizontalDivider()
-                            Text(
-                                text = stringResource(R.string.home_trending_message),
-                                color = MyPurple80,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 20.sp
-                            )
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 0.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                if (libBooks.isEmpty()) {
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Text(
+                                    text = stringResource(R.string.home_trending_message),
+                                    color = MyPurple100,
+                                    fontFamily = poppinsFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 24.sp,
+                                    modifier = Modifier
+                                        .padding(horizontal = 16.dp)
+                                        .align(Alignment.Start)
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    EmptyCardInHome(
-                                        message = stringResource(R.string.empty_trending_message)
-                                    )
-                                } else {
-                                    trendingBooks.forEach { book ->
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        BookDetailsInHome(
-                                            bookName = book.bookName,
-                                            bookDesc = book.bookDesc
-                                        )
+                                    LazyRow {
+                                        item { Spacer(modifier = Modifier.width(16.dp)) }
+                                        items(trendingBooks) { book ->
+                                            BookDetailsInSearch(
+                                                book = book,
+                                                onClick = {
+                                                    expandedBook = book
+                                                    showExpandedDetails = true
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                        }
                                     }
                                 }
                             }
-                            Spacer(modifier = Modifier.height(160.dp))
+                            Spacer(modifier = Modifier.height(140.dp))
                         }
                     }
                 }
             }
         }
         if (showNoticeBoard) {
-            NoticeBoard { showNoticeBoard = false }
+            Dialog(
+                onDismissRequest = { showNoticeBoard = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                NoticeBoard { showNoticeBoard = false }
+            }
+        }
+        if (showExpandedDetails) {
+            Dialog(
+                onDismissRequest = { showExpandedDetails = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                ExpandedBookDetailsInSearch(
+                    book = expandedBook,
+                    onClose = {
+                        showExpandedDetails = false
+                    },
+                    toIssue = {
+                        showExpandedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.books_page)
+                    },
+                    showSimilar = {
+                        showExpandedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.search_page)
+                    },
+                    message = "Go To Search"
+                )
+            }
         }
     }
 }

@@ -31,6 +31,7 @@ import com.google.mlkit.vision.common.InputImage
 
 @Composable
 fun QRCodeScannerScreen(
+    numOfCom: Int,
     onResult: (String) -> Unit,
     onClose: () -> Unit
 ) {
@@ -60,7 +61,7 @@ fun QRCodeScannerScreen(
                         imageAnalyzer.setAnalyzer(
                             ContextCompat.getMainExecutor(ctx),
                             { imageProxy ->
-                                processImage(imageProxy, onResult)
+                                processImage(imageProxy, numOfCom, onResult)
                             }
                         )
                         cameraProvider.unbindAll()
@@ -88,7 +89,7 @@ fun QRCodeScannerScreen(
 }
 
 @OptIn(ExperimentalGetImage::class)
-private fun processImage(imageProxy: ImageProxy, onResult: (String) -> Unit) {
+private fun processImage(imageProxy: ImageProxy, numOfCom: Int, onResult: (String) -> Unit) {
     val mediaImage = imageProxy.image
     if (mediaImage != null) {
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -97,7 +98,9 @@ private fun processImage(imageProxy: ImageProxy, onResult: (String) -> Unit) {
             .addOnSuccessListener { barcodes ->
                 for (barcode in barcodes) {
                     barcode.rawValue?.let { qrResult ->
-                        onResult(qrResult)
+                        if(qrResult.count { it == ',' } == numOfCom && qrResult.split(",").size == numOfCom+1 && !qrResult.startsWith(",") && !qrResult.endsWith(",")){
+                            onResult(qrResult)
+                        }
                     }
                 }
             }

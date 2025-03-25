@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,7 @@ import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.Purple40
+import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.utils.BookDetailsInHistory
 import com.example.gyanchakkhu.utils.CustomSearchBar
 import com.example.gyanchakkhu.utils.Routes
@@ -52,6 +54,11 @@ import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
 import com.example.gyanchakkhu.viewmodels.BooksViewModel
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import kotlin.Float.Companion.POSITIVE_INFINITY
 
 @Composable
@@ -61,7 +68,18 @@ fun HistoryPage(
     booksViewModel: BooksViewModel
 ) {
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
+    val dateFormat =SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+    val today = Calendar.getInstance()
     val myBooks by booksViewModel.myBooks.collectAsState()
+    val pendingBooks = myBooks.filter { !it.isSubmitted && parseDate(dateFormat, it.submitDate).before(today.time) }.groupBy { book ->
+        parseDate(dateFormat, book.submitDate)
+    }.toSortedMap(compareByDescending( {it.time} ))
+    val issuedBooks = myBooks.filter { !it.isSubmitted && parseDate(dateFormat, it.submitDate).after(today.time) }.groupBy { book ->
+        parseDate(dateFormat, book.submitDate)
+    }.toSortedMap(compareByDescending( {it.time} ))
+    val submittedBooks = myBooks.filter { it.isSubmitted }.groupBy { book ->
+        parseDate(dateFormat, book.submitDate)
+    }.toSortedMap(compareByDescending( {it.time} ))
     val searchText by booksViewModel.searchText.collectAsState()
     val isSearching by booksViewModel.isSearching.collectAsState()
     val topFade = Brush.verticalGradient(0f to Color.Transparent, 0.05f to Color.Black)
@@ -104,14 +122,14 @@ fun HistoryPage(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(30.dp))
                 Image(
                     painter = painterResource(id = R.drawable.bg_home),
                     contentDescription = "Login/SignUp Bg",
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(30.dp),
                     contentScale = ContentScale.FillWidth
                 )
-                Spacer(modifier = Modifier.height(30.dp))
                 if (!isUserEnrolledInLibrary) {
                     Row(
                         modifier = Modifier
@@ -126,12 +144,18 @@ fun HistoryPage(
                     ) {
                         Text(
                             text = stringResource(id = R.string.complete_profile),
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            style = TextStyle(
+                                fontFamily = poppinsFontFamily
+                            )
                         )
                         Text(
                             text = "Goto Profile",
                             color = Blue80,
                             fontSize = 14.sp,
+                            style = TextStyle(
+                                fontFamily = poppinsFontFamily
+                            ),
                             modifier = Modifier
                                 .clickable {
                                     navController.navigate(Routes.profile_page) {
@@ -184,6 +208,9 @@ fun HistoryPage(
                                     Text(
                                         text = stringResource(R.string.history_page_message),
                                         color = Purple40,
+                                        style = TextStyle(
+                                            fontFamily = poppinsFontFamily
+                                        ),
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 }
@@ -193,14 +220,32 @@ fun HistoryPage(
                             item {
                                 Spacer(modifier = Modifier.height(12.dp))
                             }
-                            items(myBooks) { book ->
-                                Spacer(modifier = Modifier.height(16.dp))
-                                BookDetailsInHistory(
-                                    bookName = book.bookName,
-                                    bookId = book.bookId,
-                                    issueDate = book.issueDate,
-                                    submitDate = book.submitDate
-                                )
+                            pendingBooks.forEach { (submitDate,  books) ->
+                                items(books) { book ->
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    BookDetailsInHistory(
+                                        book = book,
+                                        isPending = submitDate.before(today.time)
+                                    )
+                                }
+                            }
+                            issuedBooks.forEach { (submitDate,  books) ->
+                                items(books) { book ->
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    BookDetailsInHistory(
+                                        book = book,
+                                        isPending = submitDate.before(today.time)
+                                    )
+                                }
+                            }
+                            submittedBooks.forEach { (submitDate,  books) ->
+                                items(books) { book ->
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    BookDetailsInHistory(
+                                        book = book,
+                                        isPending = submitDate.before(today.time)
+                                    )
+                                }
                             }
                         }
                         item {
@@ -210,5 +255,13 @@ fun HistoryPage(
                 }
             }
         }
+    }
+}
+
+fun parseDate(dateFormat: SimpleDateFormat, dateStr: String): Date {
+    return try{
+        dateFormat.parse(dateStr) ?: Date()
+    } catch (e: Exception) {
+        Date()
     }
 }
