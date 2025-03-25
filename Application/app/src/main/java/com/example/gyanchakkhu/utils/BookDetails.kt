@@ -1,16 +1,12 @@
 package com.example.gyanchakkhu.utils
 
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,12 +22,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -46,28 +39,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
-import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.Green80
 import com.example.gyanchakkhu.ui.theme.MyPurple100
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.MyPurple40
 import com.example.gyanchakkhu.ui.theme.MyPurple60
-import com.example.gyanchakkhu.ui.theme.Purple20
 import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.viewmodels.Book
 import com.example.gyanchakkhu.viewmodels.MyBook
-import java.util.Calendar
 
 @Composable
 fun BookDetailsInIssueAndSubmit(
@@ -362,7 +350,7 @@ fun ExpandedBookDetailsInSearch(
                             color = MyPurple100,
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp,
+                            fontSize = 17.sp,
                         )
                         val details = listOf(
                             "Publication Year" to book.publicationYear,
@@ -387,57 +375,59 @@ fun ExpandedBookDetailsInSearch(
                                 fontSize = 12.sp
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    listOf(
+                        "Rack: " to book.rackNo,
+                        "Section: " to book.librarySection
+                    ).forEach { (label, value) ->
                         Column (
                             modifier = Modifier
-                                .fillMaxWidth()
                                 .height(28.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(Blue40)
-                                .clickable {
-                                    toIssue()
-                                },
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MyPurple120),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "Issue Now",
-                                color = Color.White,
+                                text = "$label$value",
+                                color = MyPurple60,
                                 fontFamily = poppinsFontFamily,
-                                fontSize = 12.sp,
+                                fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 9.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            listOf(
-                                "Rack: " to book.rackNo,
-                                "Section: " to book.librarySection
-                            ).forEach { (label, value) ->
-                                Column (
-                                    modifier = Modifier
-                                        .height(28.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(MyPurple120)
-                                    ,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = "$label$value",
-                                        color = MyPurple60,
-                                        fontFamily = poppinsFontFamily,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        modifier = Modifier.padding(horizontal = 9.dp)
-                                    )
-                                }
-                            }
+                        if(label == "Rack: "){
+                            Spacer(modifier = Modifier.width(8.dp))
                         }
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(28.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Blue40)
+                            .clickable {
+                                toIssue()
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Issue Now",
+                            color = Color.White,
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -638,182 +628,5 @@ fun BookDetailsInHistory(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun RecentIssuesInHome(
-    modifier: Modifier = Modifier,
-    bookName: String = "",
-    bookId: String = "",
-    issueDate: String = "",
-    submitDate: String = ""
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = "Book Name",
-                color = MyPurple100,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = bookName,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MyPurple120)
-                    .padding(horizontal = 12.dp)
-                    .weight(2f)
-                    .horizontalScroll(rememberScrollState()),
-                maxLines = 1,
-                overflow = TextOverflow.Clip
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = "Book ID",
-                color = MyPurple100,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = bookId,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MyPurple120)
-                    .padding(horizontal = 12.dp)
-                    .weight(2f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "Issue Date",
-                    color = MyPurple100,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Normal
-                )
-                Text(
-                    text = issueDate,
-                    color = MyPurple100,
-                    fontWeight = FontWeight.Normal,
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "Submit Date",
-                    color = MyPurple100,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier.align(Alignment.End)
-                )
-                Text(
-                    text = submitDate,
-                    color = MyPurple100,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier.align(Alignment.End)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun BookDetailsInHome(
-    modifier: Modifier = Modifier,
-    bookName: String = "",
-    bookDesc: String = ""
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .border(1.dp, Color.Black, RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = "Book Name",
-                color = MyPurple100,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = bookName,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MyPurple120)
-                    .padding(horizontal = 12.dp)
-                    .weight(2f)
-                    .horizontalScroll(rememberScrollState()),
-                maxLines = 1,
-                overflow = TextOverflow.Clip
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = bookDesc,
-            color = MyPurple100,
-            fontSize = 14.sp,
-            maxLines = 4,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-fun EmptyCardInHome(
-    message: String = ""
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = message,
-            color = MyPurple100,
-            fontFamily = poppinsFontFamily,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(vertical = 32.dp)
-        )
     }
 }

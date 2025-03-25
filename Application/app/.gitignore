@@ -2,3 +2,7 @@
 
 # Api key
 google-services.json
+
+# Secrets
+secrets.properties
+

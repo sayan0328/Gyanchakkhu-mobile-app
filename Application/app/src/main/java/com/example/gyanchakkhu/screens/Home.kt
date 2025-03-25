@@ -38,9 +38,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -58,14 +57,13 @@ import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.utils.BookDetailsInHistory
 import com.example.gyanchakkhu.utils.BookDetailsInSearch
 import com.example.gyanchakkhu.utils.ExpandedBookDetailsInSearch
+import com.example.gyanchakkhu.utils.GoToProfile
 import com.example.gyanchakkhu.utils.Routes
-import com.example.gyanchakkhu.utils.SharedPrefs
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
 import com.example.gyanchakkhu.viewmodels.Book
 import com.example.gyanchakkhu.viewmodels.BooksViewModel
-import com.example.gyanchakkhu.viewmodels.MyBook
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.Float.Companion.POSITIVE_INFINITY
@@ -95,7 +93,7 @@ fun HomePage(
     var showNoticeBoard by remember { mutableStateOf(false) }
     var expandedBook by remember { mutableStateOf(Book("", "", "", "", "")) }
     var showExpandedDetails by remember { mutableStateOf(false) }
-    var showPing = true
+    val showPing by authViewModel.showPing.collectAsState()
     val gradient = gradientBrush(
         colorStops = arrayOf(
             0.0f to MyPurple120,
@@ -144,44 +142,14 @@ fun HomePage(
                 }
                 item {
                     if (!isUserEnrolledInLibrary) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Top,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(Color.White)
-                                    .padding(horizontal = 20.dp)
-                                    .height(36.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.complete_profile),
-                                    fontSize = 14.sp,
-                                    fontFamily = poppinsFontFamily
-                                )
-                                Text(
-                                    text = "Goto Profile",
-                                    color = Blue80,
-                                    fontSize = 14.sp,
-                                    fontFamily = poppinsFontFamily,
-                                    modifier = Modifier
-                                        .clickable {
-                                            navController.navigate(Routes.profile_page) {
-                                                popUpTo(Routes.home_page) {
-                                                    inclusive = true
-                                                }
-                                            }
-                                        }
-                                )
+                        GoToProfile {
+                            navController.navigate(Routes.profile_page) {
+                                popUpTo(Routes.home_page) {
+                                    inclusive = true
+                                }
                             }
-                            Spacer(modifier = Modifier.height(30.dp))
                         }
+                        Spacer(modifier = Modifier.height(24.dp))
                     } else {
                         Column(
                             modifier = Modifier
@@ -213,18 +181,18 @@ fun HomePage(
                                     )
                                 }
                                 Image(
-                                    painter = painterResource(if(showPing) R.drawable.home_notice_ping else R.drawable.home_notice),
+                                    painter = painterResource(if (showPing) R.drawable.home_notice_ping else R.drawable.home_notice),
                                     contentDescription = "Home Notice Board",
                                     Modifier
                                         .size(36.dp)
                                         .clickable {
                                             showNoticeBoard = true
-                                            showPing = false
+                                            authViewModel.setPingOff()
                                         }
                                 )
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            if(myBooks.isEmpty()) {
+                            if (myBooks.isEmpty()) {
                                 Image(
                                     painter = painterResource(R.drawable.empty_mind),
                                     contentDescription = "No books found",
@@ -288,28 +256,38 @@ fun HomePage(
                                         }
                                 )
                             } else {
-                                Text(
-                                    text = stringResource(R.string.home_recent_message),
-                                    color = MyPurple100,
-                                    fontFamily = poppinsFontFamily,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 24.sp,
-                                    modifier = Modifier
-                                        .padding(horizontal = 16.dp)
-                                        .align(Alignment.Start)
-                                )
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    recentlyIssuedBooks.forEach { book ->
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        BookDetailsInHistory(
-                                            book = book
-                                        )
+                                if (recentlyIssuedBooks.isEmpty()) {
+                                    Image(
+                                        painter = painterResource(R.drawable.empty_mind),
+                                        contentDescription = "No books found",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .size(200.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = stringResource(R.string.home_recent_message),
+                                        color = MyPurple100,
+                                        fontFamily = poppinsFontFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 24.sp,
+                                        modifier = Modifier
+                                            .padding(horizontal = 16.dp)
+                                            .align(Alignment.Start)
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        recentlyIssuedBooks.forEach { book ->
+                                            Spacer(modifier = Modifier.height(16.dp))
+                                            BookDetailsInHistory(
+                                                book = book
+                                            )
+                                        }
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(20.dp))
