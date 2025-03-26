@@ -69,6 +69,7 @@ import kotlin.Float.Companion.POSITIVE_INFINITY
 @Composable
 fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
     val context = LocalContext.current
+    val authState = authViewModel.authState.observeAsState()
     val userData by authViewModel.userData.observeAsState()
     val libName by authViewModel.libraryName.observeAsState()
     val isUserEnrolledInLibrary by authViewModel.isEnrolledInLibrary.observeAsState(false)
@@ -91,10 +92,11 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
         end = Offset(0f, POSITIVE_INFINITY)
     )
 
-    val authState = authViewModel.authState.observeAsState()
-    LaunchedEffect(authState.value) {
+    LaunchedEffect(Unit) {
         when (authState.value) {
-            is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
+            is AuthState.Unauthenticated -> {
+                navController.navigate(Routes.login_page)
+            }
             else -> Unit
         }
     }
@@ -246,6 +248,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                         text = "Change Password",
                                         color = Color.Black,
                                         fontFamily = poppinsFontFamily,
+                                        fontSize = 12.sp
                                     )
                                 }
                                 Button(
@@ -260,6 +263,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                         text = "Signout",
                                         color = Color.White,
                                         fontFamily = poppinsFontFamily,
+                                        fontSize = 12.sp
                                     )
                                 }
                             }
@@ -371,6 +375,7 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                             text = if (isUserEnrolledInLibrary) "Change Library" else "Submit",
                                             color = if (isUserEnrolledInLibrary) Color.White else Color.Black,
                                             fontFamily = poppinsFontFamily,
+                                            fontSize = 12.sp
                                         )
                                     }
                                     if(!isUserEnrolledInLibrary){
@@ -392,7 +397,8 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
                                             Text(
                                                 text = "Scan QR",
                                                 color = Color.White,
-                                                fontFamily = poppinsFontFamily
+                                                fontFamily = poppinsFontFamily,
+                                                fontSize = 12.sp
                                             )
                                         }
                                     }

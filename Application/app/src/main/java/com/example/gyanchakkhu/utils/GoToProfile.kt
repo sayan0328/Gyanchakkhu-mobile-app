@@ -38,13 +38,13 @@ fun GoToProfile(
     ) {
         Text(
             text = stringResource(id = R.string.complete_profile),
-            fontSize = 14.sp,
+            fontSize = 12.sp,
             fontFamily = poppinsFontFamily
         )
         Text(
             text = "Goto Profile",
             color = Blue80,
-            fontSize = 14.sp,
+            fontSize = 12.sp,
             fontFamily = poppinsFontFamily,
             modifier = Modifier
                 .clickable {

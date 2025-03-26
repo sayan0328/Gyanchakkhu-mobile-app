@@ -93,17 +93,16 @@ fun IssuePage(
         painter = painterResource(id = R.drawable.scan_qr_top),
         contentDescription = "Scan QR Top",
     )
-    Spacer(modifier = Modifier.height(56.dp))
+    Spacer(modifier = Modifier.height(12.dp))
     Image(
         painter = painterResource(id = R.drawable.scan_qr_body),
         contentDescription = "Scan QR Body",
         modifier = Modifier
-            .size(200.dp)
             .clickable {
             onClick()
         }
     )
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(36.dp))
     Column (
         modifier = Modifier
             .height(28.dp)

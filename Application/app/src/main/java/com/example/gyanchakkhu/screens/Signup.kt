@@ -1,6 +1,8 @@
 package com.example.gyanchakkhu.screens
 
+import android.app.Activity
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -75,6 +77,10 @@ fun SignupPage(navController: NavController, authViewModel: AuthViewModel) {
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+
+    BackHandler {
+        (context as? Activity)?.finish()
+    }
 
     LaunchedEffect(authState.value) {
         when (authState.value) {

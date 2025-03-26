@@ -1,9 +1,12 @@
 package com.example.gyanchakkhu.screens
 
 import NoticeBoard
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -103,12 +107,15 @@ fun HomePage(
         end = Offset(0f, POSITIVE_INFINITY)
     )
 
+    BackHandler {
+        (context as? Activity)?.finish()
+    }
+
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticated -> {
                 navController.navigate(Routes.login_page)
             }
-
             else -> Unit
         }
     }
@@ -173,7 +180,8 @@ fun HomePage(
                                         text = userLibName,
                                         fontFamily = poppinsFontFamily,
                                         fontWeight = FontWeight.SemiBold,
-                                        fontSize = 24.sp
+                                        fontSize = 24.sp,
+                                        modifier = Modifier.horizontalScroll(rememberScrollState())
                                     )
                                     Text(
                                         text = cardUid,
