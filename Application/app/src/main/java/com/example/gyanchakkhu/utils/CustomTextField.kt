@@ -1,9 +1,11 @@
 package com.example.gyanchakkhu.utils
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
@@ -45,7 +47,8 @@ fun CustomTextField(text: String, onValueChange: (String) -> Unit, label: String
                     Text(
                         text = label,
                         color = Color.Gray,
-                        fontFamily = poppinsFontFamily
+                        fontFamily = poppinsFontFamily,
+                        modifier = Modifier.horizontalScroll(rememberScrollState())
                     )
                 }
                 innerTextField()

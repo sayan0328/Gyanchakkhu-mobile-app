@@ -1,7 +1,9 @@
 package com.example.gyanchakkhu.screens
 
+import android.app.Activity
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -80,6 +82,10 @@ fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
 
     val context = LocalContext.current
     val authState = authViewModel.authState.observeAsState()
+
+    BackHandler {
+        (context as? Activity)?.finish()
+    }
 
 //    val googleSignInLauncher = rememberLauncherForActivityResult(
 //        contract = ActivityResultContracts.StartActivityForResult(),
