@@ -92,9 +92,12 @@ fun ProfilePage(navController: NavController, authViewModel: AuthViewModel) {
         end = Offset(0f, POSITIVE_INFINITY)
     )
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticated -> {
+                navController.navigate(Routes.login_page)
+            }
+            is AuthState.Error -> {
                 navController.navigate(Routes.login_page)
             }
             else -> Unit

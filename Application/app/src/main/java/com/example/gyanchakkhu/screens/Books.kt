@@ -106,6 +106,9 @@ fun BooksPage(
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
+            is AuthState.Error -> {
+                navController.navigate(Routes.login_page)
+            }
             else -> Unit
         }
     }
@@ -135,7 +138,7 @@ fun BooksPage(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(authState.value) {
         if (permissions.any {
                 ContextCompat.checkSelfPermission(
                     context,

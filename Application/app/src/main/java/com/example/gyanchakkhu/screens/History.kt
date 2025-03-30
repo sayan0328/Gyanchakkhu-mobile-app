@@ -23,6 +23,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +43,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue80
@@ -48,12 +53,14 @@ import com.example.gyanchakkhu.ui.theme.Purple40
 import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.utils.BookDetailsInHistory
 import com.example.gyanchakkhu.utils.CustomSearchBar
+import com.example.gyanchakkhu.utils.ExpandedBookDetailsInSearch
 import com.example.gyanchakkhu.utils.GoToProfile
 import com.example.gyanchakkhu.utils.Routes
 import com.example.gyanchakkhu.utils.fadingEdge
 import com.example.gyanchakkhu.utils.gradientBrush
 import com.example.gyanchakkhu.viewmodels.AuthState
 import com.example.gyanchakkhu.viewmodels.AuthViewModel
+import com.example.gyanchakkhu.viewmodels.Book
 import com.example.gyanchakkhu.viewmodels.BooksViewModel
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
@@ -72,6 +79,7 @@ fun HistoryPage(
     val dateFormat =SimpleDateFormat("dd/MM/yy", Locale.getDefault())
     val today = Calendar.getInstance()
     val myBooks by booksViewModel.myBooks.collectAsState()
+    val libBooks by booksViewModel.books.collectAsState()
     val pendingBooks = myBooks.filter { !it.isSubmitted && parseDate(dateFormat, it.submitDate).before(today.time) }.groupBy { book ->
         parseDate(dateFormat, book.submitDate)
     }.toSortedMap(compareByDescending( {it.time} ))
@@ -83,8 +91,12 @@ fun HistoryPage(
     }.toSortedMap(compareByDescending( {it.time} ))
     val searchText by booksViewModel.searchText.collectAsState()
     val isSearching by booksViewModel.isSearching.collectAsState()
-    val topFade = Brush.verticalGradient(0f to Color.Transparent, 0.05f to Color.Black)
+    var expandedBook by remember { mutableStateOf(Book("", "", "", "", "")) }
+    var expandedIssuedBook by remember { mutableStateOf(Book("", "", "", "", "")) }
+    var showExpandedDetails by remember { mutableStateOf(false) }
+    var showExpandedIssuedDetails by remember { mutableStateOf(false) }
 
+    val topFade = Brush.verticalGradient(0f to Color.Transparent, 0.05f to Color.Black)
     val gradient = gradientBrush(
         colorStops = arrayOf(
             0.0f to MyPurple120,
@@ -98,6 +110,9 @@ fun HistoryPage(
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate(Routes.login_page)
+            is AuthState.Error -> {
+                navController.navigate(Routes.login_page)
+            }
             else -> Unit
         }
         booksViewModel.clearSearchText()
@@ -191,6 +206,10 @@ fun HistoryPage(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     BookDetailsInHistory(
                                         book = book,
+                                        onClick = {
+                                            expandedIssuedBook = libBooks.find { it.bookId == book.bookId }!!
+                                            showExpandedIssuedDetails = true
+                                        },
                                         isPending = submitDate.before(today.time)
                                     )
                                 }
@@ -200,6 +219,10 @@ fun HistoryPage(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     BookDetailsInHistory(
                                         book = book,
+                                        onClick = {
+                                            expandedIssuedBook = libBooks.find { it.bookId == book.bookId }!!
+                                            showExpandedIssuedDetails = true
+                                        },
                                         isPending = submitDate.before(today.time)
                                     )
                                 }
@@ -209,7 +232,12 @@ fun HistoryPage(
                                     Spacer(modifier = Modifier.height(16.dp))
                                     BookDetailsInHistory(
                                         book = book,
-                                        isPending = submitDate.before(today.time)
+                                        onClick = {
+                                            expandedBook = libBooks.find { it.bookId == book.bookId }!!
+                                            showExpandedDetails = true
+                                        },
+                                        isPending = submitDate.before(today.time),
+
                                     )
                                 }
                             }
@@ -219,6 +247,58 @@ fun HistoryPage(
                         }
                     }
                 }
+            }
+        }
+        if (showExpandedDetails) {
+            Dialog(
+                onDismissRequest = { showExpandedDetails = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                ExpandedBookDetailsInSearch(
+                    book = expandedBook,
+                    onClose = {
+                        showExpandedDetails = false
+                        expandedBook = Book("", "", "", "", "")
+                    },
+                    onAction = {
+                        showExpandedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.books_page)
+                    },
+                    showSimilar = {
+                        showExpandedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.search_page)
+                    },
+                    message = "Go To Search",
+                    actionMessage = "Issue Now"
+                )
+            }
+        }
+        if (showExpandedIssuedDetails) {
+            Dialog(
+                onDismissRequest = { showExpandedIssuedDetails = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                ExpandedBookDetailsInSearch(
+                    book = expandedIssuedBook,
+                    onClose = {
+                        showExpandedIssuedDetails = false
+                        expandedIssuedBook = Book("", "", "", "", "")
+                    },
+                    onAction = {
+                        showExpandedIssuedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.books_page)
+                    },
+                    showSimilar = {
+                        showExpandedIssuedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.search_page)
+                    },
+                    message = "Go To Search",
+                    actionMessage = "Submit Now"
+                )
             }
         }
     }
