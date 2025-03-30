@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -43,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -54,7 +51,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.example.gyanchakkhu.R
 import com.example.gyanchakkhu.ui.theme.Blue40
-import com.example.gyanchakkhu.ui.theme.Blue80
 import com.example.gyanchakkhu.ui.theme.MyPurple100
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
@@ -96,7 +92,9 @@ fun HomePage(
     val trendingBooks = libBooks.asSequence().shuffled().take(6).toList()
     var showNoticeBoard by remember { mutableStateOf(false) }
     var expandedBook by remember { mutableStateOf(Book("", "", "", "", "")) }
+    var expandedIssuedBook by remember { mutableStateOf(Book("", "", "", "", "")) }
     var showExpandedDetails by remember { mutableStateOf(false) }
+    var showExpandedIssuedDetails by remember { mutableStateOf(false) }
     val showPing by authViewModel.showPing.collectAsState()
     val gradient = gradientBrush(
         colorStops = arrayOf(
@@ -114,6 +112,9 @@ fun HomePage(
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Unauthenticated -> {
+                navController.navigate(Routes.login_page)
+            }
+            is AuthState.Error -> {
                 navController.navigate(Routes.login_page)
             }
             else -> Unit
@@ -293,7 +294,11 @@ fun HomePage(
                                         recentlyIssuedBooks.forEach { book ->
                                             Spacer(modifier = Modifier.height(16.dp))
                                             BookDetailsInHistory(
-                                                book = book
+                                                book = book,
+                                                onClick = {
+                                                    expandedIssuedBook = libBooks.find { it.bookId == book.bookId }!!
+                                                    showExpandedIssuedDetails = true
+                                                }
                                             )
                                         }
                                     }
@@ -386,8 +391,9 @@ fun HomePage(
                     book = expandedBook,
                     onClose = {
                         showExpandedDetails = false
+                        expandedBook = Book("", "", "", "", "")
                     },
-                    toIssue = {
+                    onAction = {
                         showExpandedDetails = false
                         navController.popBackStack()
                         navController.navigate(Routes.books_page)
@@ -397,7 +403,34 @@ fun HomePage(
                         navController.popBackStack()
                         navController.navigate(Routes.search_page)
                     },
-                    message = "Go To Search"
+                    message = "Go To Search",
+                    actionMessage = "Issue Now"
+                )
+            }
+        }
+        if (showExpandedIssuedDetails) {
+            Dialog(
+                onDismissRequest = { showExpandedIssuedDetails = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                ExpandedBookDetailsInSearch(
+                    book = expandedIssuedBook,
+                    onClose = {
+                        showExpandedIssuedDetails = false
+                        expandedIssuedBook = Book("", "", "", "", "")
+                    },
+                    onAction = {
+                        showExpandedIssuedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.books_page)
+                    },
+                    showSimilar = {
+                        showExpandedIssuedDetails = false
+                        navController.popBackStack()
+                        navController.navigate(Routes.search_page)
+                    },
+                    message = "Go To Search",
+                    actionMessage = "Submit Now"
                 )
             }
         }

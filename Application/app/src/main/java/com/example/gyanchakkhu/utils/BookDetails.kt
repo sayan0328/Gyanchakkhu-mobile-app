@@ -275,9 +275,10 @@ fun BookDetailsInSearch(
 fun ExpandedBookDetailsInSearch(
     book: Book,
     onClose: () -> Unit,
-    toIssue: () -> Unit,
+    onAction: () -> Unit,
     showSimilar: () -> Unit,
-    message: String = ""
+    message: String = "",
+    actionMessage: String = ""
 ) {
     val bitmap = remember(book.coverImage) { decodeBase64ToBitmap(book.coverImage) }
     Box(
@@ -416,13 +417,13 @@ fun ExpandedBookDetailsInSearch(
                             .clip(RoundedCornerShape(20.dp))
                             .background(Blue40)
                             .clickable {
-                                toIssue()
+                                onAction()
                             },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Issue Now",
+                            text = actionMessage,
                             color = Color.White,
                             fontFamily = poppinsFontFamily,
                             fontSize = 12.sp,
@@ -499,12 +500,16 @@ fun ExpandedBookDetailsInSearch(
 @Composable
 fun BookDetailsInHistory(
     book: MyBook,
+    onClick: () -> Unit,
     isPending: Boolean = false
 ) {
     val bitmap = remember(book.coverImage) { decodeBase64ToBitmap(book.coverImage) }
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -548,17 +553,15 @@ fun BookDetailsInHistory(
                         Text(
                             text = "Issue Date",
                             color = MyPurple40,
-                            style = TextStyle(
-                                fontFamily = poppinsFontFamily
-                            ),
-                            fontSize = 18.sp,
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp
                         )
                         Text(
                             text = book.issueDate,
                             color = MyPurple40,
-                            style = TextStyle(
-                                fontFamily = poppinsFontFamily
-                            )
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 12.sp
                         )
                     }
                     Column(
@@ -567,10 +570,9 @@ fun BookDetailsInHistory(
                         Text(
                             text = "Submit Date",
                             color = MyPurple40,
-                            style = TextStyle(
-                                fontFamily = poppinsFontFamily
-                            ),
-                            fontSize = 18.sp,
+                            fontFamily = poppinsFontFamily,
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp,
                             modifier = Modifier.align(Alignment.End)
                         )
                         Row(
@@ -583,7 +585,7 @@ fun BookDetailsInHistory(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "Already Submitted",
                                     tint = Green80,
-                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                    modifier = Modifier.size(20.dp).align(Alignment.CenterVertically)
                                 )
                             }else if(isPending) {
                                 Icon(
@@ -597,9 +599,8 @@ fun BookDetailsInHistory(
                             Text(
                                 text = book.submitDate,
                                 color = MyPurple40,
-                                style = TextStyle(
-                                    fontFamily = poppinsFontFamily
-                                )
+                                fontFamily = poppinsFontFamily,
+                                fontSize = 12.sp
                             )
                         }
                     }

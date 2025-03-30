@@ -202,7 +202,6 @@ class AuthViewModel(
             password.isBlank() -> _authState.value = AuthState.Error("Password cannot be empty")
             password.contains(" ") -> _authState.value =
                 AuthState.Error("Password cannot contain spaces")
-
             password != confirmPassword -> _authState.value =
                 AuthState.Error("Passwords do not match")
 
@@ -241,6 +240,7 @@ class AuthViewModel(
         _libraryName.value = "Not Found!"
         booksViewModel.clearBookList()
         booksViewModel.clearMyBookList()
+        libraryNameCache.value = emptyMap()
         _showPing.value = false
     }
 
@@ -268,12 +268,11 @@ class AuthViewModel(
         if (libraryName.isBlank() || libraryUid.isBlank()) return
         val userId = auth.currentUser?.uid ?: return
         val user = _userData.value ?: return
-        var cardUid = ""
         if (libraryNameCache.value[libraryUid] == libraryName) {
             database.child("userList").child(userId).child("userLibraryList").child(libraryUid)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        cardUid = snapshot.value.toString()
+                        val cardUid = snapshot.value.toString()
                         _isEnrolledInLibrary.value = true
                         _userData.value = _userData.value?.copy(libraryUid = libraryUid, cardUid = cardUid)
                         getLibraryName(libraryUid)
@@ -293,7 +292,7 @@ class AuthViewModel(
                 })
 
         } else {
-            cardUid = generateUniqueCardId(user.name ?: return, libraryUid)
+            val cardUid = generateUniqueCardId(user.name ?: return, libraryUid)
             database.child("libraryList").child(libraryUid).child("name")
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
