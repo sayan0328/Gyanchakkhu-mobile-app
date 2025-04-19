@@ -53,6 +53,7 @@ import com.example.gyanchakkhu.ui.theme.MyPurple100
 import com.example.gyanchakkhu.ui.theme.MyPurple120
 import com.example.gyanchakkhu.ui.theme.MyPurple40
 import com.example.gyanchakkhu.ui.theme.MyPurple60
+import com.example.gyanchakkhu.ui.theme.MyRed80
 import com.example.gyanchakkhu.ui.theme.poppinsFontFamily
 import com.example.gyanchakkhu.viewmodels.Book
 import com.example.gyanchakkhu.viewmodels.MyBook
@@ -591,8 +592,8 @@ fun BookDetailsInHistory(
                                 Icon(
                                     imageVector = Icons.Default.Info,
                                     contentDescription = "Submission Pending",
-                                    tint = Green80,
-                                    modifier = Modifier.rotate(90F).align(Alignment.CenterVertically)
+                                    tint = MyRed80,
+                                    modifier = Modifier.rotate(180F).size(20.dp).align(Alignment.CenterVertically)
                                 )
                             }
                             Spacer(modifier = Modifier.width(4.dp))
